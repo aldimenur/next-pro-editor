@@ -1,6 +1,8 @@
 const { app, BrowserWindow, ipcMain, dialog } = require("electron");
 const path = require("path");
 const { spawn } = require("child_process");
+const { shell } = require("electron");
+const fs = require("fs");
 
 let win;
 let server;
@@ -21,10 +23,10 @@ function createWindow() {
   // win.loadFile(path.join(__dirname, "../client/build/index.html"));
 }
 
-// Tangani fungsi dari preload
-ipcMain.handle("dialog:openFile", async () => {
-  const result = await dialog.showOpenDialog({ properties: ["openFile"] });
-  return result.filePaths;
+ipcMain.handle("openFileLocation", async (sfxName) => {
+  shell.showItemInFolder(
+    path.join(__dirname, "../assets/sound-effects", sfxName)
+  );
 });
 
 app.whenReady().then(() => {
