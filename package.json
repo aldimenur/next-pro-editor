@@ -1,0 +1,21 @@
+{
+  "name": "next-pro-editor",
+  "version": "1.0.0",
+  "description": "App for becoming Pro Editor",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "server": "node server/index.js",
+    "client": "cd client && npm start",
+    "build": "cd client && npm run build",
+    "electron": "electron electron/main.js"
+  },
+  "author": "aldimenur",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^5.1.0"
+  },
+  "devDependencies": {
+    "electron": "^37.1.0"
+  }
+}
