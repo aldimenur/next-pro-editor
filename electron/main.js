@@ -1,4 +1,4 @@
-const { app, BrowserWindow } = require("electron");
+const { app, BrowserWindow, ipcMain, dialog } = require("electron");
 const path = require("path");
 const { spawn } = require("child_process");
 
@@ -11,11 +11,21 @@ function createWindow() {
     height: 768,
     webPreferences: {
       contextIsolation: true,
+      preload: path.join(__dirname, "preload.js"),
+      nodeIntegration: false,
     },
   });
 
   win.loadURL("http://localhost:3000");
+
+  // win.loadFile(path.join(__dirname, "../client/build/index.html"));
 }
+
+// Tangani fungsi dari preload
+ipcMain.handle("dialog:openFile", async () => {
+  const result = await dialog.showOpenDialog({ properties: ["openFile"] });
+  return result.filePaths;
+});
 
 app.whenReady().then(() => {
   // Jalankan backend Express

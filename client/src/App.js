@@ -1,23 +1,18 @@
-import logo from './logo.svg';
-import './App.css';
+import { useState } from "react";
 
 function App() {
+  const [filePath, setFilePath] = useState("");
+
+  const handleOpen = async () => {
+    const result = await window.electronAPI.openFileDialog();
+    setFilePath(result[0] || "No file selected");
+  };
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div>
+      <h1>Hello React + Electron</h1>
+      <button onClick={handleOpen}>Open File</button>
+      <p>Selected file: {filePath}</p>
     </div>
   );
 }

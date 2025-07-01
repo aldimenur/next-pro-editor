@@ -4,18 +4,20 @@
   "description": "App for becoming Pro Editor",
   "main": "index.js",
   "scripts": {
-    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "react": "cd client && npm start",
     "server": "node server/index.js",
-    "client": "cd client && npm start",
-    "build": "cd client && npm run build",
-    "electron": "electron electron/main.js"
+    "electron": "wait-on http://localhost:3000 && electron electron/main.js",
+    "dev": "concurrently \"npm run server\" \"npm run react\" \"npm run electron\""
   },
   "author": "aldimenur",
   "license": "ISC",
   "dependencies": {
+    "cors": "^2.8.5",
     "express": "^5.1.0"
   },
   "devDependencies": {
-    "electron": "^37.1.0"
+    "concurrently": "^9.2.0",
+    "electron": "^37.1.0",
+    "wait-on": "^8.0.3"
   }
 }
