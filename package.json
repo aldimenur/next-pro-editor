@@ -4,9 +4,10 @@
   "description": "App for becoming Pro Editor",
   "main": "index.js",
   "scripts": {
-    "react": "cd client && npm start",
+    "react": "cd client && npm run start",
     "server": "nodemon server/index.js",
-    "electron": "wait-on http://localhost:3000 && electron electron/main.js",
+    "electron": "electron electron/main.js",
+    "start": "electron electron/main.js",
     "dev": "concurrently \"npm run server\" \"npm run react\" \"npm run electron\""
   },
   "author": "aldimenur",
