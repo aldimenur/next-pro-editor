@@ -50,22 +50,41 @@ ipcMain.handle("openFileLocation", async (_event, filePath) => {
   shell.showItemInFolder(filePath);
 });
 
+// Helper function to recursively get files from a directory
+function getFilesRecursively(dir, fileTypes) {
+  let results = [];
+  const files = fs.readdirSync(dir);
+
+  files.forEach((file) => {
+    const filePath = path.join(dir, file);
+    const stat = fs.statSync(filePath);
+
+    if (stat.isDirectory()) {
+      // Recursively search in subdirectories
+      results = results.concat(getFilesRecursively(filePath, fileTypes));
+    } else {
+      // Check if file matches the allowed types
+      if (fileTypes.some((type) => file.toLowerCase().endsWith(type))) {
+        results.push(filePath);
+      }
+    }
+  });
+
+  return results;
+}
+
 ipcMain.handle("getSoundEffects", async (_event, params = {}) => {
   try {
     const { page = 1, limit = 20, search = "" } = params;
-    let soundFiles = fs
-      .readdirSync(SOUND_DIR)
-      .filter(
-        (file) =>
-          file.endsWith(".mp3") ||
-          file.endsWith(".wav") ||
-          file.endsWith(".m4a")
-      );
+    const soundFileTypes = [".mp3", ".wav", ".m4a"];
+    let soundFiles = getFilesRecursively(SOUND_DIR, soundFileTypes);
 
     // Filter by search query (case-insensitive)
     if (search) {
       const q = search.toLowerCase();
-      soundFiles = soundFiles.filter((file) => file.toLowerCase().includes(q));
+      soundFiles = soundFiles.filter((filePath) =>
+        path.basename(filePath).toLowerCase().includes(q)
+      );
     }
 
     const total = soundFiles.length;
@@ -73,10 +92,12 @@ ipcMain.handle("getSoundEffects", async (_event, params = {}) => {
     const currentPage = Math.min(Math.max(page, 1), totalPages);
 
     const startIdx = (currentPage - 1) * limit;
-    const files = soundFiles.slice(startIdx, startIdx + limit).map((file) => ({
-      filePath: path.join(SOUND_DIR, file),
-      fileName: file,
-    }));
+    const files = soundFiles
+      .slice(startIdx, startIdx + limit)
+      .map((filePath) => ({
+        filePath,
+        fileName: path.basename(filePath),
+      }));
 
     return { files, total, totalPages, page: currentPage, limit };
   } catch (err) {
@@ -95,13 +116,14 @@ ipcMain.handle("getSoundEffects", async (_event, params = {}) => {
 ipcMain.handle("getVideoEffects", async (_event, params = {}) => {
   try {
     const { page = 1, limit = 20, search = "" } = params;
-    let videoFiles = fs
-      .readdirSync(VIDEO_DIR)
-      .filter((file) => file.endsWith(".mp4") || file.endsWith(".mov"));
+    const videoFileTypes = [".mp4", ".mov"];
+    let videoFiles = getFilesRecursively(VIDEO_DIR, videoFileTypes);
 
     if (search) {
       const q = search.toLowerCase();
-      videoFiles = videoFiles.filter((file) => file.toLowerCase().includes(q));
+      videoFiles = videoFiles.filter((filePath) =>
+        path.basename(filePath).toLowerCase().includes(q)
+      );
     }
 
     const total = videoFiles.length;
@@ -109,10 +131,12 @@ ipcMain.handle("getVideoEffects", async (_event, params = {}) => {
     const currentPage = Math.min(Math.max(page, 1), totalPages);
 
     const startIdx = (currentPage - 1) * limit;
-    const files = videoFiles.slice(startIdx, startIdx + limit).map((file) => ({
-      filePath: path.join(VIDEO_DIR, file),
-      fileName: file,
-    }));
+    const files = videoFiles
+      .slice(startIdx, startIdx + limit)
+      .map((filePath) => ({
+        filePath,
+        fileName: path.basename(filePath),
+      }));
 
     return { files, total, totalPages, page: currentPage, limit };
   } catch (err) {
@@ -131,13 +155,14 @@ ipcMain.handle("getVideoEffects", async (_event, params = {}) => {
 ipcMain.handle("getMusic", async (_event, params = {}) => {
   try {
     const { page = 1, limit = 20, search = "" } = params;
-    let musicFiles = fs
-      .readdirSync(MUSIC_DIR)
-      .filter((file) => file.endsWith(".mp3") || file.endsWith(".wav"));
+    const musicFileTypes = [".mp3", ".wav"];
+    let musicFiles = getFilesRecursively(MUSIC_DIR, musicFileTypes);
 
     if (search) {
       const q = search.toLowerCase();
-      musicFiles = musicFiles.filter((file) => file.toLowerCase().includes(q));
+      musicFiles = musicFiles.filter((filePath) =>
+        path.basename(filePath).toLowerCase().includes(q)
+      );
     }
 
     const total = musicFiles.length;
@@ -145,10 +170,12 @@ ipcMain.handle("getMusic", async (_event, params = {}) => {
     const currentPage = Math.min(Math.max(page, 1), totalPages);
 
     const startIdx = (currentPage - 1) * limit;
-    const files = musicFiles.slice(startIdx, startIdx + limit).map((file) => ({
-      filePath: path.join(MUSIC_DIR, file),
-      fileName: file,
-    }));
+    const files = musicFiles
+      .slice(startIdx, startIdx + limit)
+      .map((filePath) => ({
+        filePath,
+        fileName: path.basename(filePath),
+      }));
 
     return { files, total, totalPages, page: currentPage, limit };
   } catch (err) {
@@ -191,3 +218,4 @@ app.whenReady().then(() => {
     if (server) server.kill();
   });
 });
+
