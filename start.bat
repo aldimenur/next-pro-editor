@@ -17,9 +17,6 @@ cd server
 call npm install
 cd ..
 
-echo Memulai server di latar belakang...
-start cmd /c "cd server && npm start"
-
 echo Memulai aplikasi Electron...
 cd electron
 call npm start

@@ -16,11 +16,6 @@ cd server
 npm install
 cd ..
 
-echo "Memulai server di latar belakang..."
-cd server
-npm start &
-cd ..
-
 echo "Memulai aplikasi Electron..."
 cd electron
 npm start 
