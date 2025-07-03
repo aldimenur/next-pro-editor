@@ -28,24 +28,24 @@ function createWindow() {
   });
 
   // Development
-  win.loadURL("http://localhost:3000");
+  // win.loadURL("http://localhost:3000");
 
   // Production
   // Start the Express server
-  // serverProcess = spawn("node", [path.join(__dirname, "../server/index.js")], {
-  //   cwd: __dirname,
-  //   stdio: "pipe",
-  // });
+  serverProcess = spawn("node", [path.join(__dirname, "../server/index.js")], {
+    cwd: __dirname,
+    stdio: "pipe",
+  });
 
   // Wait a moment for server to start, then load the app
-  // setTimeout(() => {
-  //   win.loadURL("http://localhost:3001");
-  // }, 1000);
+  setTimeout(() => {
+    win.loadURL("http://localhost:3001");
+  }, 1000);
 
   // // Show window when ready
-  // win.once("ready-to-show", () => {
-  //   win.show();
-  // });
+  win.once("ready-to-show", () => {
+    win.show();
+  });
 }
 
 ipcMain.handle("openFileLocation", async (_event, filePath) => {
