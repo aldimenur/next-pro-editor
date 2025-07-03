@@ -1,9 +1,13 @@
 import { useState, useEffect } from "react";
+import SoundPlayer from "./components/SoundPlayer";
+import VideoPlayer from "./components/VideoPlayer";
 
 function App() {
   // Updated state to include media types and active section
   const [activeSection, setActiveSection] = useState("sfx");
   const [sounds, setSounds] = useState([]);
+  const [videos, setVideos] = useState([]);
+  const [music, setMusic] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -14,15 +18,40 @@ function App() {
       page,
       limit,
       search: searchTerm,
-      type: activeSection, // Add type to filter by section
     });
     setSounds(data.files || []);
+    setTotalPages(data.totalPages || 1);
+  };
+
+  const fetchVideos = async () => {
+    const data = await window.electronAPI.getVideoEffects({
+      page,
+      limit,
+      search: searchTerm,
+    });
+    setVideos(data.files || []);
+    setTotalPages(data.totalPages || 1);
+  };
+
+  const fetchMusic = async () => {
+    const data = await window.electronAPI.getMusic({
+      page,
+      limit,
+      search: searchTerm,
+    });
+    setMusic(data.files || []);
     setTotalPages(data.totalPages || 1);
   };
 
   // Fetch on initial render and whenever page/searchTerm/activeSection changes
   useEffect(() => {
     fetchSounds();
+    if (activeSection === "vfx") {
+      fetchVideos();
+    }
+    if (activeSection === "music") {
+      fetchMusic();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, searchTerm, activeSection]);
 
@@ -81,11 +110,11 @@ function App() {
             />
           </div>
 
-          {sounds.length > 0 ? (
-            <>
-              {/* Media Grid */}
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-6">
-                {sounds.map((sound, index) => (
+          <>
+            {/* Media Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+              {activeSection === "sfx" &&
+                sounds.map((sound, index) => (
                   <div
                     key={index}
                     className="bg-gray-50 border border-gray-200 rounded-lg p-4 hover:shadow-md transition duration-300 ease-in-out transform hover:-translate-y-1 cursor-pointer"
@@ -98,6 +127,9 @@ function App() {
                     <p className="font-medium text-gray-800 mb-2 truncate">
                       {sound.fileName}
                     </p>
+                    <div className="border border-gray-200 rounded-lg p-2 mb-2">
+                      <SoundPlayer filePath={sound.filePath} />
+                    </div>
                     <button
                       onClick={() => {
                         window.electronAPI.openFileLocation(sound.filePath);
@@ -108,32 +140,73 @@ function App() {
                     </button>
                   </div>
                 ))}
-              </div>
+              {activeSection === "vfx" &&
+                videos.map((video, index) => (
+                  <div
+                    key={index}
+                    className="bg-gray-50 border border-gray-200 rounded-lg p-4 hover:shadow-md transition duration-300 ease-in-out transform hover:-translate-y-1 cursor-pointer"
+                  >
+                    <p className="font-medium text-gray-800 mb-2 truncate">
+                      {video.fileName}
+                    </p>
+                    <div className="border border-gray-200 rounded-lg p-2 mb-2">
+                      <VideoPlayer filePath={video.filePath} />
+                    </div>
+                    <button
+                      onClick={() => {
+                        window.electronAPI.openFileLocation(video.filePath);
+                      }}
+                      className="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 transition duration-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    >
+                      Open File Location
+                    </button>
+                  </div>
+                ))}
+              {activeSection === "music" &&
+                music.map((music, index) => (
+                  <div
+                    key={index}
+                    className="bg-gray-50 border border-gray-200 rounded-lg p-4 hover:shadow-md transition duration-300 ease-in-out transform hover:-translate-y-1 cursor-pointer"
+                  >
+                    <p className="font-medium text-gray-800 mb-2 truncate">
+                      {music.fileName}
+                    </p>
+                    <div className="border border-gray-200 rounded-lg p-2 mb-2">
+                      <SoundPlayer filePath={music.filePath} />
+                    </div>
+                    <button
+                      onClick={() => {
+                        window.electronAPI.openFileLocation(music.filePath);
+                      }}
+                      className="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 transition duration-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    >
+                      Open File Location
+                    </button>
+                  </div>
+                ))}
+            </div>
 
-              {/* Pagination Controls */}
-              <div className="flex justify-center items-center space-x-4">
-                <button
-                  onClick={() => setPage((p) => Math.max(p - 1, 1))}
-                  disabled={page === 1}
-                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-300 transition duration-300"
-                >
-                  Prev
-                </button>
-                <span className="text-gray-600">
-                  Page {page} of {totalPages}
-                </span>
-                <button
-                  onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
-                  disabled={page === totalPages}
-                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-300 transition duration-300"
-                >
-                  Next
-                </button>
-              </div>
-            </>
-          ) : (
-            <p className="text-center text-gray-500 mt-6">No media found.</p>
-          )}
+            {/* Pagination Controls */}
+            <div className="flex justify-center items-center space-x-4">
+              <button
+                onClick={() => setPage((p) => Math.max(p - 1, 1))}
+                disabled={page === 1}
+                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-300 transition duration-300"
+              >
+                Prev
+              </button>
+              <span className="text-gray-600">
+                Page {page} of {totalPages}
+              </span>
+              <button
+                onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
+                disabled={page === totalPages}
+                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-300 transition duration-300"
+              >
+                Next
+              </button>
+            </div>
+          </>
         </div>
       </div>
     </div>

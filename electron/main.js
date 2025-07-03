@@ -4,8 +4,8 @@ const { spawn } = require("child_process");
 const { shell } = require("electron");
 const fs = require("fs");
 const SOUND_DIR = path.join(__dirname, "../assets/sound-effects");
-const MUSIC_DIR = path.join(__dirname, "../assets/music");
-const VIDEO_DIR = path.join(__dirname, "../assets/video");
+const MUSIC_DIR = path.join(__dirname, "../assets/musics");
+const VIDEO_DIR = path.join(__dirname, "../assets/videos");
 const ICON_DIR = path.join(__dirname, "../assets/icons");
 
 let win;
@@ -19,6 +19,9 @@ function createWindow() {
       contextIsolation: true,
       preload: path.join(__dirname, "preload.js"),
       nodeIntegration: false,
+      webSecurity: false,
+      allowRunningInsecureContent: true,
+      enableRemoteModule: false,
     },
   });
 
@@ -52,7 +55,12 @@ ipcMain.handle("getSoundEffects", async (_event, params = {}) => {
     const { page = 1, limit = 20, search = "" } = params;
     let soundFiles = fs
       .readdirSync(SOUND_DIR)
-      .filter((file) => file.endsWith(".mp3") || file.endsWith(".wav"));
+      .filter(
+        (file) =>
+          file.endsWith(".mp3") ||
+          file.endsWith(".wav") ||
+          file.endsWith(".m4a")
+      );
 
     // Filter by search query (case-insensitive)
     if (search) {
@@ -73,6 +81,78 @@ ipcMain.handle("getSoundEffects", async (_event, params = {}) => {
     return { files, total, totalPages, page: currentPage, limit };
   } catch (err) {
     console.error("Error getting sound effects:", err);
+    return {
+      files: [],
+      total: 0,
+      totalPages: 1,
+      page: 1,
+      limit: 0,
+      error: err.message,
+    };
+  }
+});
+
+ipcMain.handle("getVideoEffects", async (_event, params = {}) => {
+  try {
+    const { page = 1, limit = 20, search = "" } = params;
+    let videoFiles = fs
+      .readdirSync(VIDEO_DIR)
+      .filter((file) => file.endsWith(".mp4") || file.endsWith(".mov"));
+
+    if (search) {
+      const q = search.toLowerCase();
+      videoFiles = videoFiles.filter((file) => file.toLowerCase().includes(q));
+    }
+
+    const total = videoFiles.length;
+    const totalPages = Math.max(1, Math.ceil(total / limit));
+    const currentPage = Math.min(Math.max(page, 1), totalPages);
+
+    const startIdx = (currentPage - 1) * limit;
+    const files = videoFiles.slice(startIdx, startIdx + limit).map((file) => ({
+      filePath: path.join(VIDEO_DIR, file),
+      fileName: file,
+    }));
+
+    return { files, total, totalPages, page: currentPage, limit };
+  } catch (err) {
+    console.error("Error getting video effects:", err);
+    return {
+      files: [],
+      total: 0,
+      totalPages: 1,
+      page: 1,
+      limit: 0,
+      error: err.message,
+    };
+  }
+});
+
+ipcMain.handle("getMusic", async (_event, params = {}) => {
+  try {
+    const { page = 1, limit = 20, search = "" } = params;
+    let musicFiles = fs
+      .readdirSync(MUSIC_DIR)
+      .filter((file) => file.endsWith(".mp3") || file.endsWith(".wav"));
+
+    if (search) {
+      const q = search.toLowerCase();
+      musicFiles = musicFiles.filter((file) => file.toLowerCase().includes(q));
+    }
+
+    const total = musicFiles.length;
+    const totalPages = Math.max(1, Math.ceil(total / limit));
+    const currentPage = Math.min(Math.max(page, 1), totalPages);
+
+    const startIdx = (currentPage - 1) * limit;
+    const files = musicFiles.slice(startIdx, startIdx + limit).map((file) => ({
+      filePath: path.join(MUSIC_DIR, file),
+      fileName: file,
+    }));
+
+    return { files, total, totalPages, page: currentPage, limit };
+  } catch (err) {
+    console.error("Error getting music:", err);
     return {
       files: [],
       total: 0,
