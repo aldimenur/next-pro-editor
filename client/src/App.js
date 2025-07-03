@@ -65,37 +65,39 @@ function App() {
   return (
     <div className="flex bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen font-sans">
       {/* Left Navigation */}
-      <div className="w-64 bg-white shadow-lg p-6 border-r">
-        <h1 className="text-2xl font-bold mb-6 text-gray-800">Media Library</h1>
-        <nav>
-          {sections.map((section) => (
-            <button
-              key={section.id}
-              onClick={() => {
-                setActiveSection(section.id);
-                setPage(1);
-                setSearchTerm(""); // Reset search when changing section
-              }}
-              className={`w-full text-left p-3 rounded-lg mb-2 transition duration-300 ${
-                activeSection === section.id
-                  ? "bg-blue-500 text-white"
-                  : "hover:bg-gray-100 text-gray-700"
-              }`}
-            >
-              {section.label}
-            </button>
-          ))}
-        </nav>
+      <div className="w-40 bg-white shadow-lg p-4 border-r flex flex-col justify-between">
+        <div className="">
+          <h1 className="text-lg font-bold mb-6 text-gray-800">
+            Firasat Library
+          </h1>
+          <nav>
+            {sections.map((section) => (
+              <button
+                key={section.id}
+                onClick={() => {
+                  setActiveSection(section.id);
+                  setPage(1);
+                  setSearchTerm(""); // Reset search when changing section
+                }}
+                className={`w-full text-left p-3 rounded-lg mb-2 transition duration-300 ${
+                  activeSection === section.id
+                    ? "bg-blue-500 text-white"
+                    : "hover:bg-gray-100 text-gray-700"
+                }`}
+              >
+                {section.label}
+              </button>
+            ))}
+          </nav>
+        </div>
+        <div className="text-center text-gray-500 text-sm">
+          &copy; {new Date().getFullYear()} Aldimenur. All rights reserved.
+        </div>
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 p-6">
+      <div className="flex-1 p-2 overflow-y-auto h-screen">
         <div className="max-w-4xl mx-auto bg-white shadow-lg rounded-xl p-8">
-          <h2 className="text-3xl font-extrabold text-gray-800 mb-6 text-center">
-            {sections.find((s) => s.id === activeSection)?.label ||
-              "Media Library"}
-          </h2>
-
           {/* Search Input */}
           <div className="mb-6">
             <input
@@ -117,7 +119,7 @@ function App() {
                 sounds.map((sound, index) => (
                   <div
                     key={index}
-                    className="bg-gray-50 border border-gray-200 rounded-lg p-4 hover:shadow-md transition duration-300 ease-in-out transform hover:-translate-y-1 cursor-pointer"
+                    className="bg-gray-50 border border-gray-200 rounded-lg p-3 hover:shadow-md transition duration-300 ease-in-out transform hover:-translate-y-1 cursor-pointer"
                     draggable
                     onDragStart={(e) => {
                       e.preventDefault();
@@ -144,7 +146,12 @@ function App() {
                 videos.map((video, index) => (
                   <div
                     key={index}
-                    className="bg-gray-50 border border-gray-200 rounded-lg p-4 hover:shadow-md transition duration-300 ease-in-out transform hover:-translate-y-1 cursor-pointer"
+                    className="bg-gray-50 border border-gray-200 rounded-lg p-3 hover:shadow-md transition duration-300 ease-in-out transform hover:-translate-y-1 cursor-pointer"
+                    draggable
+                    onDragStart={(e) => {
+                      e.preventDefault();
+                      window.electronAPI.onDragStart(video.filePath);
+                    }}
                   >
                     <p className="font-medium text-gray-800 mb-2 truncate">
                       {video.fileName}
@@ -166,7 +173,12 @@ function App() {
                 music.map((music, index) => (
                   <div
                     key={index}
-                    className="bg-gray-50 border border-gray-200 rounded-lg p-4 hover:shadow-md transition duration-300 ease-in-out transform hover:-translate-y-1 cursor-pointer"
+                    className="bg-gray-50 border border-gray-200 rounded-lg p-3 hover:shadow-md transition duration-300 ease-in-out transform hover:-translate-y-1 cursor-pointer"
+                    draggable
+                    onDragStart={(e) => {
+                      e.preventDefault();
+                      window.electronAPI.onDragStart(music.filePath);
+                    }}
                   >
                     <p className="font-medium text-gray-800 mb-2 truncate">
                       {music.fileName}

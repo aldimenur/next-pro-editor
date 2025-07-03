@@ -23,6 +23,8 @@ function createWindow() {
       allowRunningInsecureContent: true,
       enableRemoteModule: false,
     },
+    autoHideMenuBar: true,
+    title: "Firasat Media Library - Aldimenur",
   });
 
   // Development
