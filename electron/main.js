@@ -4,6 +4,9 @@ const { spawn } = require("child_process");
 const { shell } = require("electron");
 const fs = require("fs");
 const SOUND_DIR = path.join(__dirname, "../assets/sound-effects");
+const MUSIC_DIR = path.join(__dirname, "../assets/music");
+const VIDEO_DIR = path.join(__dirname, "../assets/video");
+const ICON_DIR = path.join(__dirname, "../assets/icons");
 
 let win;
 let server;
@@ -40,18 +43,10 @@ function createWindow() {
   // });
 }
 
-ipcMain.handle("openFileLocation", async (_event, sfxName) => {
-  if (typeof sfxName === "string" && sfxName.length > 0) {
-    shell.showItemInFolder(
-      path.join(__dirname, "../assets/sound-effects", sfxName)
-    );
-  }
-  // Return the resolved path so the renderer can optionally use it.
-  return path.join(__dirname, "../assets/sound-effects", sfxName || "");
+ipcMain.handle("openFileLocation", async (_event, filePath) => {
+  shell.showItemInFolder(filePath);
 });
 
-// Return list of sound-effect files with optional pagination & search.
-// params: { page: number, limit: number, search: string }
 ipcMain.handle("getSoundEffects", async (_event, params = {}) => {
   try {
     const { page = 1, limit = 20, search = "" } = params;
@@ -70,7 +65,10 @@ ipcMain.handle("getSoundEffects", async (_event, params = {}) => {
     const currentPage = Math.min(Math.max(page, 1), totalPages);
 
     const startIdx = (currentPage - 1) * limit;
-    const files = soundFiles.slice(startIdx, startIdx + limit);
+    const files = soundFiles.slice(startIdx, startIdx + limit).map((file) => ({
+      filePath: path.join(SOUND_DIR, file),
+      fileName: file,
+    }));
 
     return { files, total, totalPages, page: currentPage, limit };
   } catch (err) {
@@ -86,15 +84,24 @@ ipcMain.handle("getSoundEffects", async (_event, params = {}) => {
   }
 });
 
+ipcMain.on("onDragStart", (event, filePath) => {
+  event.sender.startDrag({
+    file: filePath,
+    icon: path.join(
+      ICON_DIR,
+      "Hopstarter-Sleek-Xp-Basic-Document-Blank.32.png"
+    ),
+  });
+});
+
 app.whenReady().then(() => {
-  // Use the current Node executable and avoid invoking through the shell so paths with spaces work on Windows
-  const nodePath = process.execPath; // Absolute path to the Node binary
+  const nodePath = process.execPath;
   server = spawn(nodePath, [path.join(__dirname, "../server/index.js")], {
     stdio: "inherit",
-    windowsHide: true, // Hide the extra console window on Windows
+    windowsHide: true,
   });
 
-  setTimeout(createWindow, 1000); // beri delay agar server siap
+  setTimeout(createWindow, 1000);
 
   app.on("window-all-closed", () => {
     if (process.platform !== "darwin") app.quit();

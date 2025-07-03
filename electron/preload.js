@@ -1,7 +1,8 @@
 const { contextBridge, ipcRenderer } = require("electron");
 
 contextBridge.exposeInMainWorld("electronAPI", {
-  openFileLocation: (sfxName) =>
-    ipcRenderer.invoke("openFileLocation", sfxName),
+  openFileLocation: (filePath) =>
+    ipcRenderer.invoke("openFileLocation", filePath),
   getSoundEffects: (params) => ipcRenderer.invoke("getSoundEffects", params),
+  onDragStart: (filePath) => ipcRenderer.send("onDragStart", filePath),
 });
