@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import SoundPlayer from "./components/SoundPlayer";
 import VideoPlayer from "./components/VideoPlayer";
+import LeftNavigation from "./components/LeftNavigation";
 
 function App() {
   // Updated state to include media types and active section
@@ -11,6 +12,8 @@ function App() {
   const [searchTerm, setSearchTerm] = useState("");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [isNavCollapsed, setIsNavCollapsed] = useState(false);
+  const [gridColumns, setGridColumns] = useState(4);
   const limit = 10;
 
   const fetchSounds = async () => {
@@ -55,49 +58,42 @@ function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, searchTerm, activeSection]);
 
-  // Navigation sections
-  const sections = [
-    { id: "sfx", label: "Sound Effects" },
-    { id: "vfx", label: "Video Effects" },
-    { id: "music", label: "Music" },
-  ];
+  // Grid column control handlers
+  const increaseGridColumns = () => {
+    setGridColumns(Math.min(gridColumns + 1, 6)); // Max 6 columns
+  };
+
+  const decreaseGridColumns = () => {
+    setGridColumns(Math.max(gridColumns - 1, 1)); // Min 1 column
+  };
 
   return (
     <div className="flex bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen font-sans">
       {/* Left Navigation */}
-      <div className="w-40 bg-white shadow-lg p-4 border-r flex flex-col justify-between">
-        <div className="">
-          <h1 className="text-lg font-bold mb-6 text-gray-800">
-            Firasat Library
-          </h1>
-          <nav>
-            {sections.map((section) => (
-              <button
-                key={section.id}
-                onClick={() => {
-                  setActiveSection(section.id);
-                  setPage(1);
-                  setSearchTerm(""); // Reset search when changing section
-                }}
-                className={`w-full text-left p-3 rounded-lg mb-2 transition duration-300 ${
-                  activeSection === section.id
-                    ? "bg-blue-500 text-white"
-                    : "hover:bg-gray-100 text-gray-700"
-                }`}
-              >
-                {section.label}
-              </button>
-            ))}
-          </nav>
-        </div>
-        <div className="text-center text-gray-500 text-sm">
-          &copy; {new Date().getFullYear()} Aldimenur. All rights reserved.
-        </div>
-      </div>
+      <LeftNavigation
+        isNavCollapsed={isNavCollapsed}
+        setIsNavCollapsed={setIsNavCollapsed}
+        activeSection={activeSection}
+        setActiveSection={setActiveSection}
+        increaseGridColumns={increaseGridColumns}
+        decreaseGridColumns={decreaseGridColumns}
+        gridColumns={gridColumns}
+      />
 
       {/* Main Content Area */}
-      <div className="flex-1 p-2 overflow-y-auto h-screen">
-        <div className="max-w-4xl mx-auto bg-white shadow-lg rounded-xl p-8">
+      <div
+        className={`
+          flex-1 
+          p-2 
+          overflow-y-auto 
+          h-screen 
+          transition-all 
+          duration-300 
+          ease-in-out 
+          ${isNavCollapsed ? "ml-0" : "ml-0"}
+        `}
+      >
+        <div className="mx-auto bg-white shadow-lg rounded-xl p-6">
           {/* Search Input */}
           <div className="mb-6">
             <input
@@ -114,12 +110,14 @@ function App() {
 
           <>
             {/* Media Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <div
+              className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-${gridColumns} gap-4 mb-6 relative`}
+            >
               {activeSection === "sfx" &&
                 sounds.map((sound, index) => (
                   <div
                     key={index}
-                    className="bg-gray-50 border border-gray-200 rounded-lg p-3 hover:shadow-md transition duration-300 ease-in-out transform hover:-translate-y-1 cursor-pointer"
+                    className="bg-gray-50 border border-gray-200 rounded-lg p-3 hover:shadow-md transition duration-300 ease-in-out transform cursor-pointer"
                     draggable
                     onDragStart={(e) => {
                       e.preventDefault();
@@ -129,7 +127,7 @@ function App() {
                     <p className="font-medium text-gray-800 mb-2 truncate">
                       {sound.fileName}
                     </p>
-                    <div className="border border-gray-200 rounded-lg p-2 mb-2">
+                    <div className="border border-gray-200 rounded-lg p-2 mb-2 bg-white hover:border-red-500 onk transition duration-300 ease-in-out">
                       <SoundPlayer filePath={sound.filePath} />
                     </div>
                     <button
@@ -146,7 +144,7 @@ function App() {
                 videos.map((video, index) => (
                   <div
                     key={index}
-                    className="bg-gray-50 border border-gray-200 rounded-lg p-3 hover:shadow-md transition duration-300 ease-in-out transform hover:-translate-y-1 cursor-pointer"
+                    className="bg-gray-50 border border-gray-200 rounded-lg p-3 hover:shadow-md transition duration-300 ease-in-out transform cursor-pointer"
                     draggable
                     onDragStart={(e) => {
                       e.preventDefault();
@@ -156,7 +154,7 @@ function App() {
                     <p className="font-medium text-gray-800 mb-2 truncate">
                       {video.fileName}
                     </p>
-                    <div className="border border-gray-200 rounded-lg p-2 mb-2">
+                    <div className="border border-gray-200 rounded-lg p-2 mb-2 bg-white hover:border-red-500 onk transition duration-300 ease-in-out">
                       <VideoPlayer filePath={video.filePath} />
                     </div>
                     <button
@@ -173,7 +171,7 @@ function App() {
                 music.map((music, index) => (
                   <div
                     key={index}
-                    className="bg-gray-50 border border-gray-200 rounded-lg p-3 hover:shadow-md transition duration-300 ease-in-out transform hover:-translate-y-1 cursor-pointer"
+                    className="bg-gray-50 border border-gray-200 rounded-lg p-3 hover:shadow-md transition duration-300 ease-in-out transform cursor-pointer"
                     draggable
                     onDragStart={(e) => {
                       e.preventDefault();
@@ -183,7 +181,7 @@ function App() {
                     <p className="font-medium text-gray-800 mb-2 truncate">
                       {music.fileName}
                     </p>
-                    <div className="border border-gray-200 rounded-lg p-2 mb-2">
+                    <div className="border border-gray-200 rounded-lg p-2 mb-2 bg-white hover:border-red-500 onk transition duration-300 ease-in-out">
                       <SoundPlayer filePath={music.filePath} />
                     </div>
                     <button
