@@ -61,7 +61,7 @@ function App() {
   const [errorMessage, setErrorMessage] = useState(null);
 
   useEffect(() => {
-    document.title = "Next Pro Editor - Aldimenur";
+    document.title = "Next Pro Editor";
   }, []);
 
   const fetchSounds = async () => {
@@ -130,7 +130,6 @@ function App() {
       console.error("Error deleting file:", error);
     }
   };
-
   // Fetch on initial render and whenever page/searchTerm/activeSection changes
   useEffect(() => {
     fetchSounds();

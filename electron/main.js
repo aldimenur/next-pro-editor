@@ -24,26 +24,26 @@ function createWindow() {
     },
     autoHideMenuBar: true,
     title: "Next Pro Editor - Aldimenur",
-    icon: "icon.ico",
+    icon: path.join(__dirname, "..", "icon.ico"),
   });
 
   // Development
-  win.loadURL("http://localhost:3000");
+  // win.loadURL("http://localhost:3000");
 
   // Production
-  // serverProcess = spawn("node", [path.join(__dirname, "../server/index.js")], {
-  //   cwd: __dirname,
-  //   stdio: "pipe",
-  // });
-  // setTimeout(() => {
-  //   win.loadURL("http://localhost:3001");
-  // }, 1000);
-  // win.once("ready-to-show", () => {
-  //   win.show();
-  // });
-  // win.on("closed", () => {
-  //   serverProcess.kill();
-  // });
+  serverProcess = spawn("node", [path.join(__dirname, "../server/index.js")], {
+    cwd: __dirname,
+    stdio: "pipe",
+  });
+  setTimeout(() => {
+    win.loadURL("http://localhost:3001");
+  }, 2000);
+  win.once("ready-to-show", () => {
+    win.show();
+  });
+  win.on("closed", () => {
+    serverProcess.kill();
+  });
 }
 
 // Helper function to recursively get files from a directory
