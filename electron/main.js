@@ -181,9 +181,9 @@ ipcMain.handle("getMusic", async (_event, params = {}) => {
   }
 });
 
-ipcMain.on("deleteFile", (event, filePath) => {
+ipcMain.on("deleteFile", async (event, filePath) => {
   try {
-    fs.unlinkSync(filePath);
+    await fs.unlink(filePath);
     event.sender.send("fileDeleted", filePath);
   } catch (err) {
     console.error("Error deleting file:", err);
