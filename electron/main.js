@@ -2,7 +2,7 @@ const { app, BrowserWindow, ipcMain, dialog } = require("electron");
 const path = require("path");
 const { spawn } = require("child_process");
 const { shell } = require("electron");
-const fs = require("fs");
+const { promises: fs } = require("fs");
 const SOUND_DIR = path.join(__dirname, "../assets/sound-effects");
 const MUSIC_DIR = path.join(__dirname, "../assets/musics");
 const VIDEO_DIR = path.join(__dirname, "../assets/videos");
@@ -28,45 +28,36 @@ function createWindow() {
   });
 
   // Development
-  // win.loadURL("http://localhost:3000");
+  win.loadURL("http://localhost:3000");
 
   // Production
-  serverProcess = spawn("node", [path.join(__dirname, "../server/index.js")], {
-    cwd: __dirname,
-    stdio: "pipe",
-  });
-  setTimeout(() => {
-    win.loadURL("http://localhost:3001");
-  }, 1000);
-  win.once("ready-to-show", () => {
-    win.show();
-  });
-  win.on("closed", () => {
-    serverProcess.kill();
-  });
+  // serverProcess = spawn("node", [path.join(__dirname, "../server/index.js")], {
+  //   cwd: __dirname,
+  //   stdio: "pipe",
+  // });
+  // setTimeout(() => {
+  //   win.loadURL("http://localhost:3001");
+  // }, 1000);
+  // win.once("ready-to-show", () => {
+  //   win.show();
+  // });
+  // win.on("closed", () => {
+  //   serverProcess.kill();
+  // });
 }
 
 // Helper function to recursively get files from a directory
-function getFilesRecursively(dir, fileTypes) {
-  let results = [];
-  const files = fs.readdirSync(dir);
-
-  files.forEach((file) => {
-    const filePath = path.join(dir, file);
-    const stat = fs.statSync(filePath);
-
-    if (stat.isDirectory()) {
-      // Recursively search in subdirectories
-      results = results.concat(getFilesRecursively(filePath, fileTypes));
-    } else {
-      // Check if file matches the allowed types
-      if (fileTypes.some((type) => file.toLowerCase().endsWith(type))) {
-        results.push(filePath);
-      }
+async function getFilesRecursively(dir, fileTypes, acc = []) {
+  const entries = await fs.readdir(dir, { withFileTypes: true });
+  for (const e of entries) {
+    const res = path.join(dir, e.name);
+    if (e.isDirectory()) {
+      await getFilesRecursively(res, fileTypes, acc);
+    } else if (fileTypes.some((t) => e.name.toLowerCase().endsWith(t))) {
+      acc.push(res);
     }
-  });
-
-  return results;
+  }
+  return acc;
 }
 
 ipcMain.handle("openFileLocation", async (_event, filePath) => {
@@ -77,7 +68,7 @@ ipcMain.handle("getSoundEffects", async (_event, params = {}) => {
   try {
     const { page = 1, limit = 20, search = "" } = params;
     const soundFileTypes = [".mp3", ".wav", ".m4a"];
-    let soundFiles = getFilesRecursively(SOUND_DIR, soundFileTypes);
+    let soundFiles = await getFilesRecursively(SOUND_DIR, soundFileTypes);
 
     // Filter by search query (case-insensitive)
     if (search) {
@@ -116,8 +107,7 @@ ipcMain.handle("getSoundEffects", async (_event, params = {}) => {
 ipcMain.handle("getVideoEffects", async (_event, params = {}) => {
   try {
     const { page = 1, limit = 20, search = "" } = params;
-    const videoFileTypes = [".mp4", ".mov"];
-    let videoFiles = getFilesRecursively(VIDEO_DIR, videoFileTypes);
+    let videoFiles = await getFilesRecursively(VIDEO_DIR, [".mp4", ".mov"]);
 
     if (search) {
       const q = search.toLowerCase();
@@ -156,7 +146,7 @@ ipcMain.handle("getMusic", async (_event, params = {}) => {
   try {
     const { page = 1, limit = 20, search = "" } = params;
     const musicFileTypes = [".mp3", ".wav"];
-    let musicFiles = getFilesRecursively(MUSIC_DIR, musicFileTypes);
+    let musicFiles = await getFilesRecursively(MUSIC_DIR, musicFileTypes);
 
     if (search) {
       const q = search.toLowerCase();
@@ -188,6 +178,16 @@ ipcMain.handle("getMusic", async (_event, params = {}) => {
       limit: 0,
       error: err.message,
     };
+  }
+});
+
+ipcMain.on("deleteFile", (event, filePath) => {
+  try {
+    fs.unlinkSync(filePath);
+    event.sender.send("fileDeleted", filePath);
+  } catch (err) {
+    console.error("Error deleting file:", err);
+    event.sender.send("fileDeleteError", err.message);
   }
 });
 

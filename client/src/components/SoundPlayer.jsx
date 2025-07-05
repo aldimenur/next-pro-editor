@@ -11,7 +11,12 @@ const SoundPlayer = ({ filePath }) => {
 
   const handlePlay = useCallback(() => {
     if (wavesurfer && !isPlaying) {
-      wavesurfer.play();
+      const playPromise = wavesurfer.play();
+      if (playPromise !== undefined && playPromise.catch) {
+        playPromise.catch(() => {
+          /* Suppress play interrupted by pause warning */
+        });
+      }
       setIsPlaying(true);
     }
   }, [wavesurfer, isPlaying]);

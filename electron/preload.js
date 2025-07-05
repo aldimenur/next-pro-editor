@@ -7,4 +7,5 @@ contextBridge.exposeInMainWorld("electronAPI", {
   getVideoEffects: (params) => ipcRenderer.invoke("getVideoEffects", params),
   getMusic: (params) => ipcRenderer.invoke("getMusic", params),
   onDragStart: (filePath) => ipcRenderer.send("onDragStart", filePath),
+  deleteFile: (filePath) => ipcRenderer.send("deleteFile", filePath),
 });
