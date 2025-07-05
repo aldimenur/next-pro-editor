@@ -2,7 +2,7 @@
   "name": "next-pro-editor",
   "version": "1.0.0",
   "description": "App for becoming Pro Editor",
-  "main": "index.js",
+  "main": "electron/main.js",
   "scripts": {
     "react": "cd client && npm run start",
     "server": "nodemon server/index.js",
@@ -20,6 +20,7 @@
   "devDependencies": {
     "concurrently": "^9.2.0",
     "electron": "^37.1.0",
+    "electron-packager": "^17.1.2",
     "wait-on": "^8.0.3"
   }
 }

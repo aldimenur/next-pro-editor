@@ -4,7 +4,6 @@ import VideoPlayer from "./components/VideoPlayer";
 import LeftNavigation from "./components/LeftNavigation";
 
 function App() {
-  // Updated state to include media types and active section
   const [activeSection, setActiveSection] = useState("sfx");
   const [sounds, setSounds] = useState([]);
   const [videos, setVideos] = useState([]);
@@ -15,6 +14,10 @@ function App() {
   const [isNavCollapsed, setIsNavCollapsed] = useState(false);
   const [gridColumns, setGridColumns] = useState(4);
   const limit = 10;
+
+  useEffect(() => {
+    document.title = "Next Pro Editor - Aldimenur";
+  }, []);
 
   const fetchSounds = async () => {
     const data = await window.electronAPI.getSoundEffects({

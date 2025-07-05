@@ -7,3 +7,5 @@ assets/musics/*
 !assets/sound-effects/.gitkeep
 !assets/videos/.gitkeep
 !assets/musics/.gitkeep
+
+dist/

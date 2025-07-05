@@ -9,7 +9,7 @@ const VIDEO_DIR = path.join(__dirname, "../assets/videos");
 const ICON_DIR = path.join(__dirname, "../assets/icons");
 
 let win;
-let server;
+let serverProcess;
 
 function createWindow() {
   win = new BrowserWindow({
@@ -24,33 +24,34 @@ function createWindow() {
       enableRemoteModule: false,
     },
     autoHideMenuBar: true,
-    title: "Firasat Media Library - Aldimenur",
+    title: "Next Pro Editor - Aldimenur",
+    icon: path.join(ICON_DIR, "icon.png"),
   });
 
   // Development
-  win.loadURL("http://localhost:3000");
+  // win.loadURL("http://localhost:3000");
 
   // Production
   // Start the Express server
-  // serverProcess = spawn("node", [path.join(__dirname, "../server/index.js")], {
-  //   cwd: __dirname,
-  //   stdio: "pipe",
-  // });
+  serverProcess = spawn("node", [path.join(__dirname, "../server/index.js")], {
+    cwd: __dirname,
+    stdio: "pipe",
+  });
 
   // Wait a moment for server to start, then load the app
-  // setTimeout(() => {
-  //   win.loadURL("http://localhost:3001");
-  // }, 1000);
+  setTimeout(() => {
+    win.loadURL("http://localhost:3001");
+  }, 1000);
 
   // // Show window when ready
-  // win.once("ready-to-show", () => {
-  //   win.show();
-  // });
-}
+  win.once("ready-to-show", () => {
+    win.show();
+  });
 
-ipcMain.handle("openFileLocation", async (_event, filePath) => {
-  shell.showItemInFolder(filePath);
-});
+  win.on("closed", () => {
+    serverProcess.kill();
+  });
+}
 
 // Helper function to recursively get files from a directory
 function getFilesRecursively(dir, fileTypes) {
@@ -74,6 +75,10 @@ function getFilesRecursively(dir, fileTypes) {
 
   return results;
 }
+
+ipcMain.handle("openFileLocation", async (_event, filePath) => {
+  shell.showItemInFolder(filePath);
+});
 
 ipcMain.handle("getSoundEffects", async (_event, params = {}) => {
   try {
@@ -204,20 +209,5 @@ ipcMain.on("onDragStart", (event, filePath) => {
 });
 
 app.whenReady().then(() => {
-  const nodePath = process.execPath;
-  server = spawn(nodePath, [path.join(__dirname, "../server/index.js")], {
-    stdio: "inherit",
-    windowsHide: true,
-  });
-
-  setTimeout(createWindow, 1000);
-
-  app.on("window-all-closed", () => {
-    if (process.platform !== "darwin") app.quit();
-  });
-
-  app.on("quit", () => {
-    if (server) server.kill();
-  });
+  createWindow();
 });
-
