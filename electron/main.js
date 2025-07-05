@@ -24,7 +24,7 @@ function createWindow() {
     },
     autoHideMenuBar: true,
     title: "Next Pro Editor - Aldimenur",
-    icon: "icon.png",
+    icon: "icon.ico",
   });
 
   // Development

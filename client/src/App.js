@@ -99,9 +99,9 @@ function App() {
           ${isNavCollapsed ? "ml-0" : "ml-0"}
         `}
       >
-        <div className="mx-auto bg-white shadow-lg rounded-xl p-6">
+        <div className="mx-auto bg-white shadow-lg rounded-xl p-6 flex flex-col h-full">
           {/* Search Input */}
-          <div className="mb-4">
+          <div className="mb-3">
             <input
               type="text"
               placeholder={`Search ${activeSection.toUpperCase()} files...`}
@@ -110,14 +110,14 @@ function App() {
                 setSearchTerm(e.target.value);
                 setPage(1); // reset to first page when searching
               }}
-              className="w-full p-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300"
+              className="w-full p-2 text-sm border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300"
             />
           </div>
 
-          <>
+          <div className="flex-1 flex flex-col h-full overflow-y-auto">
             {/* Media Grid */}
             <div
-              className={`grid gap-4 mb-6 relative w-full box-border`}
+              className={`grid gap-4 mb-6 relative w-full box-border flex-1`}
               style={{
                 gridTemplateColumns: `repeat(${gridColumns}, 1fr)`,
               }}
@@ -226,28 +226,27 @@ function App() {
                   </div>
                 ))}
             </div>
-
-            {/* Pagination Controls */}
-            <div className="flex justify-center items-center space-x-4">
-              <button
-                onClick={() => setPage((p) => Math.max(p - 1, 1))}
-                disabled={page === 1}
-                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-300 transition duration-300"
-              >
-                Prev
-              </button>
-              <span className="text-gray-600">
-                Page {page} of {totalPages}
-              </span>
-              <button
-                onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
-                disabled={page === totalPages}
-                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-300 transition duration-300"
-              >
-                Next
-              </button>
-            </div>
-          </>
+          </div>
+          {/* Pagination Controls */}
+          <div className="flex justify-center items-center space-x-4 mt-3">
+            <button
+              onClick={() => setPage((p) => Math.max(p - 1, 1))}
+              disabled={page === 1}
+              className="px-3 py-1 bg-gray-200 text-gray-700 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-300 transition duration-300"
+            >
+              Prev
+            </button>
+            <span className="text-gray-600 text-sm">
+              Page {page} of {totalPages}
+            </span>
+            <button
+              onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
+              disabled={page === totalPages}
+              className="px-3 py-1 bg-gray-200 text-gray-700 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-300 transition duration-300"
+            >
+              Next
+            </button>
+          </div>
         </div>
       </div>
     </div>
