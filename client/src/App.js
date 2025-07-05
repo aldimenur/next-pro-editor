@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import SoundPlayer from "./components/SoundPlayer";
 import VideoPlayer from "./components/VideoPlayer";
 import LeftNavigation from "./components/LeftNavigation";
+import { LuFolderSearch } from "react-icons/lu";
 
 function App() {
   const [activeSection, setActiveSection] = useState("sfx");
@@ -12,8 +13,8 @@ function App() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [isNavCollapsed, setIsNavCollapsed] = useState(false);
-  const [gridColumns, setGridColumns] = useState(4);
-  const limit = 10;
+  const [gridColumns, setGridColumns] = useState(3);
+  const [limit, setLimit] = useState(10);
 
   useEffect(() => {
     document.title = "Next Pro Editor - Aldimenur";
@@ -59,15 +60,17 @@ function App() {
       fetchMusic();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, searchTerm, activeSection]);
+  }, [page, searchTerm, activeSection, gridColumns]);
 
   // Grid column control handlers
   const increaseGridColumns = () => {
     setGridColumns(Math.min(gridColumns + 1, 6)); // Max 6 columns
+    setLimit(Math.min(limit + 5, 20));
   };
 
   const decreaseGridColumns = () => {
     setGridColumns(Math.max(gridColumns - 1, 1)); // Min 1 column
+    setLimit(Math.max(limit - 5, 5));
   };
 
   return (
@@ -86,19 +89,19 @@ function App() {
       {/* Main Content Area */}
       <div
         className={`
-          flex-1 
-          p-2 
-          overflow-y-auto 
-          h-screen 
-          transition-all 
-          duration-300 
-          ease-in-out 
+          flex-1
+          p-2
+          overflow-y-auto
+          h-screen
+          transition-all
+          duration-300
+          ease-in-out
           ${isNavCollapsed ? "ml-0" : "ml-0"}
         `}
       >
         <div className="mx-auto bg-white shadow-lg rounded-xl p-6">
           {/* Search Input */}
-          <div className="mb-6">
+          <div className="mb-4">
             <input
               type="text"
               placeholder={`Search ${activeSection.toUpperCase()} files...`}
@@ -107,56 +110,71 @@ function App() {
                 setSearchTerm(e.target.value);
                 setPage(1); // reset to first page when searching
               }}
-              className="w-full p-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300"
+              className="w-full p-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300"
             />
           </div>
 
           <>
             {/* Media Grid */}
             <div
-              className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-${gridColumns} gap-4 mb-6 relative`}
+              className={`grid gap-4 mb-6 relative w-full box-border`}
+              style={{
+                gridTemplateColumns: `repeat(${gridColumns}, 1fr)`,
+              }}
             >
               {activeSection === "sfx" &&
                 sounds.map((sound, index) => (
                   <div
                     key={index}
-                    className="bg-gray-50 border border-gray-200 rounded-lg p-3 hover:shadow-md transition duration-300 ease-in-out transform cursor-pointer"
+                    className="bg-gray-50 border border-gray-200 rounded-lg p-3 hover:shadow-md transition duration-300 ease-in-out transform cursor-pointer min-w-0"
                     draggable
                     onDragStart={(e) => {
                       e.preventDefault();
                       window.electronAPI.onDragStart(sound.filePath);
                     }}
                   >
-                    <p className="font-medium text-gray-800 mb-2 truncate">
-                      {sound.fileName}
-                    </p>
+                    <div className="flex justify-between items-center mb-1">
+                      <p className="font-medium text-gray-800 truncate text-sm">
+                        {sound.fileName}
+                      </p>
+                      <button
+                        onClick={() => {
+                          window.electronAPI.openFileLocation(sound.filePath);
+                        }}
+                        className="p-1.5 ml-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition duration-300 focus:outline-none focus:ring-2 focus:ring-blue-400 flex items-center justify-center"
+                      >
+                        <LuFolderSearch className="w-4 h-4" />
+                      </button>
+                    </div>
                     <div className="border border-gray-200 rounded-lg p-2 mb-2 bg-white hover:border-red-500 onk transition duration-300 ease-in-out">
                       <SoundPlayer filePath={sound.filePath} />
                     </div>
-                    <button
-                      onClick={() => {
-                        window.electronAPI.openFileLocation(sound.filePath);
-                      }}
-                      className="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 transition duration-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                    >
-                      Open File Location
-                    </button>
                   </div>
                 ))}
               {activeSection === "vfx" &&
                 videos.map((video, index) => (
                   <div
                     key={index}
-                    className="bg-gray-50 border border-gray-200 rounded-lg p-3 hover:shadow-md transition duration-300 ease-in-out transform cursor-pointer"
+                    className="bg-gray-50 border border-gray-200 rounded-lg p-3 hover:shadow-md transition duration-300 ease-in-out transform cursor-pointer min-w-0"
                     draggable
                     onDragStart={(e) => {
                       e.preventDefault();
                       window.electronAPI.onDragStart(video.filePath);
                     }}
                   >
-                    <p className="font-medium text-gray-800 mb-2 truncate">
-                      {video.fileName}
-                    </p>
+                    <div className="flex justify-between items-center mb-1">
+                      <p className="font-medium text-gray-800 truncate text-sm">
+                        {video.fileName}
+                      </p>
+                      <button
+                        onClick={() => {
+                          window.electronAPI.openFileLocation(video.filePath);
+                        }}
+                        className="p-1.5 ml-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition duration-300 focus:outline-none focus:ring-2 focus:ring-blue-400 flex items-center justify-center"
+                      >
+                        <LuFolderSearch className="w-4 h-4" />
+                      </button>
+                    </div>
                     <div className="border border-gray-200 rounded-lg p-2 mb-2 bg-white hover:border-red-500 onk transition duration-300 ease-in-out">
                       <VideoPlayer filePath={video.filePath} />
                     </div>
@@ -174,16 +192,26 @@ function App() {
                 music.map((music, index) => (
                   <div
                     key={index}
-                    className="bg-gray-50 border border-gray-200 rounded-lg p-3 hover:shadow-md transition duration-300 ease-in-out transform cursor-pointer"
+                    className="bg-gray-50 border border-gray-200 rounded-lg p-3 hover:shadow-md transition duration-300 ease-in-out transform cursor-pointer min-w-0"
                     draggable
                     onDragStart={(e) => {
                       e.preventDefault();
                       window.electronAPI.onDragStart(music.filePath);
                     }}
                   >
-                    <p className="font-medium text-gray-800 mb-2 truncate">
-                      {music.fileName}
-                    </p>
+                    <div className="flex justify-between items-center mb-1">
+                      <p className="font-medium text-gray-800 truncate text-sm">
+                        {music.fileName}
+                      </p>
+                      <button
+                        onClick={() => {
+                          window.electronAPI.openFileLocation(music.filePath);
+                        }}
+                        className="p-1.5 ml-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition duration-300 focus:outline-none focus:ring-2 focus:ring-blue-400 flex items-center justify-center"
+                      >
+                        <LuFolderSearch className="w-4 h-4" />
+                      </button>
+                    </div>
                     <div className="border border-gray-200 rounded-lg p-2 mb-2 bg-white hover:border-red-500 onk transition duration-300 ease-in-out">
                       <SoundPlayer filePath={music.filePath} />
                     </div>

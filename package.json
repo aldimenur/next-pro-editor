@@ -8,7 +8,7 @@
     "server": "nodemon server/index.js",
     "electron": "electron electron/main.js",
     "start": "electron electron/main.js",
-    "dev": "concurrently \"npm run server\" \"npm run react\" \"npm run electron\""
+    "dev": "concurrently \"npm run react\" \"npm run electron\""
   },
   "author": "aldimenur",
   "license": "ISC",

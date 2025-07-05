@@ -120,18 +120,18 @@ const LeftNavigation = ({
       </div>
 
       <div className="flex flex-col gap-2 p-4 justify-center items-center">
-        <span className="text-gray-600 text-sm">{gridColumns}</span>
-        <button
-          onClick={decreaseGridColumns}
-          className="p-2 bg-gray-200 rounded-full hover:bg-gray-300 transition duration-300 w-fit"
-        >
-          <FaMinus className="text-gray-700" />
-        </button>
+        {/* <span className="text-gray-600 text-sm">{gridColumns}</span> */}
         <button
           onClick={increaseGridColumns}
-          className="p-2 bg-gray-200 rounded-full hover:bg-gray-300 transition duration-300 w-fit"
+          className="p-2 bg-gray-200 rounded-full hover:bg-gray-300 transition duration-300 w-full flex justify-center items-center"
         >
           <FaPlus className="text-gray-700" />
+        </button>
+        <button
+          onClick={decreaseGridColumns}
+          className="p-2 bg-gray-200 rounded-full hover:bg-gray-300 transition duration-300 w-full flex justify-center items-center"
+        >
+          <FaMinus className="text-gray-700" />
         </button>
         {!isNavCollapsed && (
           <div className="text-center text-gray-500 text-sm p-4 border-t border-gray-200">

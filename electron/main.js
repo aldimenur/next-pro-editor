@@ -9,7 +9,6 @@ const VIDEO_DIR = path.join(__dirname, "../assets/videos");
 const ICON_DIR = path.join(__dirname, "../assets/icons");
 
 let win;
-let serverProcess;
 
 function createWindow() {
   win = new BrowserWindow({
@@ -25,32 +24,26 @@ function createWindow() {
     },
     autoHideMenuBar: true,
     title: "Next Pro Editor - Aldimenur",
-    icon: path.join(ICON_DIR, "icon.png"),
+    icon: "icon.png",
   });
 
   // Development
-  // win.loadURL("http://localhost:3000");
+  win.loadURL("http://localhost:3000");
 
   // Production
-  // Start the Express server
-  serverProcess = spawn("node", [path.join(__dirname, "../server/index.js")], {
-    cwd: __dirname,
-    stdio: "pipe",
-  });
-
-  // Wait a moment for server to start, then load the app
-  setTimeout(() => {
-    win.loadURL("http://localhost:3001");
-  }, 1000);
-
-  // // Show window when ready
-  win.once("ready-to-show", () => {
-    win.show();
-  });
-
-  win.on("closed", () => {
-    serverProcess.kill();
-  });
+  // serverProcess = spawn("node", [path.join(__dirname, "../server/index.js")], {
+  //   cwd: __dirname,
+  //   stdio: "pipe",
+  // });
+  // setTimeout(() => {
+  //   win.loadURL("http://localhost:3001");
+  // }, 1000);
+  // win.once("ready-to-show", () => {
+  //   win.show();
+  // });
+  // win.on("closed", () => {
+  //   serverProcess.kill();
+  // });
 }
 
 // Helper function to recursively get files from a directory
