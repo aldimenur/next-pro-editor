@@ -64,6 +64,27 @@ function App() {
     document.title = "Next Pro Editor";
   }, []);
 
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 768) {
+        setIsNavCollapsed(true);
+      } else {
+        setIsNavCollapsed(false);
+      }
+    };
+
+    // Add event listener
+    window.addEventListener("resize", handleResize);
+
+    // Initial check
+    handleResize();
+
+    // Cleanup event listener on component unmount
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
+
   const fetchSounds = async () => {
     try {
       const data = await window.electronAPI.getSoundEffects({
