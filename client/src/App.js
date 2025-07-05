@@ -1,8 +1,48 @@
 import { useState, useEffect } from "react";
+import { Dialog } from "@headlessui/react";
 import SoundPlayer from "./components/SoundPlayer";
 import VideoPlayer from "./components/VideoPlayer";
 import LeftNavigation from "./components/LeftNavigation";
-import { LuFolderSearch, LuTrash } from "react-icons/lu";
+import { LuFolderSearch, LuTrash, LuX, LuCheck } from "react-icons/lu";
+
+function ConfirmationModal({ isOpen, onClose, onConfirm, fileName }) {
+  return (
+    <Dialog
+      open={isOpen}
+      onClose={onClose}
+      className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-4"
+    >
+      <div className="fixed inset-0 bg-black/50" aria-hidden="true" />
+      <div className="fixed inset-0 flex w-screen items-center justify-center p-4">
+        <Dialog.Panel className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
+          <Dialog.Title className="text-lg font-bold text-gray-900 mb-4">
+            Confirm File Deletion
+          </Dialog.Title>
+          <p className="text-sm text-gray-600 mb-6">
+            Are you sure you want to delete the file:{" "}
+            <span className="font-semibold">{fileName}</span>?
+            <br />
+            This action cannot be undone.
+          </p>
+          <div className="flex justify-end space-x-3">
+            <button
+              onClick={onClose}
+              className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition duration-300 flex items-center"
+            >
+              <LuX className="mr-2" /> Cancel
+            </button>
+            <button
+              onClick={onConfirm}
+              className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition duration-300 flex items-center"
+            >
+              <LuCheck className="mr-2" /> Delete
+            </button>
+          </div>
+        </Dialog.Panel>
+      </div>
+    </Dialog>
+  );
+}
 
 function App() {
   const [activeSection, setActiveSection] = useState("sfx");
@@ -17,51 +57,76 @@ function App() {
   const [isNavCollapsed, setIsNavCollapsed] = useState(false);
   const [gridColumns, setGridColumns] = useState(3);
   const [limit, setLimit] = useState(5);
+  const [confirmDelete, setConfirmDelete] = useState(null);
+  const [errorMessage, setErrorMessage] = useState(null);
 
   useEffect(() => {
     document.title = "Next Pro Editor - Aldimenur";
   }, []);
 
   const fetchSounds = async () => {
-    const data = await window.electronAPI.getSoundEffects({
-      page,
-      limit,
-      search: searchTerm,
-    });
-    setSounds(data.files || []);
-    setSoundsTotalPages(data.totalPages || 1);
+    try {
+      const data = await window.electronAPI.getSoundEffects({
+        page,
+        limit,
+        search: searchTerm,
+      });
+      setSounds(data.files || []);
+      setSoundsTotalPages(data.totalPages || 1);
+    } catch (error) {
+      setErrorMessage(`Failed to fetch sound effects: ${error.message}`);
+    }
   };
 
   const fetchVideos = async () => {
-    const data = await window.electronAPI.getVideoEffects({
-      page,
-      limit,
-      search: searchTerm,
-    });
-    setVideos(data.files || []);
-    setVideosTotalPages(data.totalPages || 1);
+    try {
+      const data = await window.electronAPI.getVideoEffects({
+        page,
+        limit,
+        search: searchTerm,
+      });
+      setVideos(data.files || []);
+      setVideosTotalPages(data.totalPages || 1);
+    } catch (error) {
+      setErrorMessage(`Failed to fetch video effects: ${error.message}`);
+    }
   };
 
   const fetchMusic = async () => {
-    const data = await window.electronAPI.getMusic({
-      page,
-      limit,
-      search: searchTerm,
-    });
-    setMusic(data.files || []);
-    setMusicTotalPages(data.totalPages || 1);
+    try {
+      const data = await window.electronAPI.getMusic({
+        page,
+        limit,
+        search: searchTerm,
+      });
+      setMusic(data.files || []);
+      setMusicTotalPages(data.totalPages || 1);
+    } catch (error) {
+      setErrorMessage(`Failed to fetch music: ${error.message}`);
+    }
   };
 
-  const deleteFile = async (filePath) => {
-    if (!window.confirm("Are you sure you want to delete this file?")) {
-      return;
-    }
+  const deleteFile = async (filePath, fileName) => {
+    setConfirmDelete({ filePath, fileName });
+  };
+
+  const confirmFileDelete = async () => {
+    if (!confirmDelete) return;
+
     try {
-      await window.electronAPI.deleteFile(filePath);
-      setSounds(sounds.filter((sound) => sound.filePath !== filePath));
-      setVideos(videos.filter((video) => video.filePath !== filePath));
-      setMusic(music.filter((music) => music.filePath !== filePath));
+      await window.electronAPI.deleteFile(confirmDelete.filePath);
+      setSounds(
+        sounds.filter((sound) => sound.filePath !== confirmDelete.filePath)
+      );
+      setVideos(
+        videos.filter((video) => video.filePath !== confirmDelete.filePath)
+      );
+      setMusic(
+        music.filter((music) => music.filePath !== confirmDelete.filePath)
+      );
+      setConfirmDelete(null);
     } catch (error) {
+      setErrorMessage(`Error deleting file: ${error.message}`);
       console.error("Error deleting file:", error);
     }
   };
@@ -76,7 +141,7 @@ function App() {
       fetchMusic();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, searchTerm, activeSection, gridColumns, deleteFile]);
+  }, [page, searchTerm, activeSection, gridColumns]);
 
   // Grid column control handlers
   const increaseGridColumns = () => {
@@ -91,6 +156,29 @@ function App() {
 
   return (
     <div className="flex bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen font-sans">
+      {/* Confirmation Modal */}
+      {confirmDelete && (
+        <ConfirmationModal
+          isOpen={!!confirmDelete}
+          onClose={() => setConfirmDelete(null)}
+          onConfirm={confirmFileDelete}
+          fileName={confirmDelete.fileName}
+        />
+      )}
+
+      {/* Error Toast */}
+      {errorMessage && (
+        <div className="fixed top-4 right-4 z-50 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg flex items-center">
+          <span className="mr-2">{errorMessage}</span>
+          <button
+            onClick={() => setErrorMessage(null)}
+            className="text-white hover:text-red-100"
+          >
+            <LuX />
+          </button>
+        </div>
+      )}
+
       {/* Left Navigation */}
       <LeftNavigation
         isNavCollapsed={isNavCollapsed}
@@ -163,7 +251,9 @@ function App() {
                           <LuFolderSearch className="w-4 h-4" />
                         </button>
                         <button
-                          onClick={() => deleteFile(sound.filePath)}
+                          onClick={() =>
+                            deleteFile(sound.filePath, sound.fileName)
+                          }
                           className="p-1.5 ml-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition duration-300 focus:outline-none focus:ring-2 focus:ring-red-400 flex items-center justify-center"
                         >
                           <LuTrash className="w-4 h-4" />
@@ -200,7 +290,9 @@ function App() {
                           <LuFolderSearch className="w-4 h-4" />
                         </button>
                         <button
-                          onClick={() => deleteFile(music.filePath)}
+                          onClick={() =>
+                            deleteFile(video.filePath, video.fileName)
+                          }
                           className="p-1.5 ml-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition duration-300 focus:outline-none focus:ring-2 focus:ring-red-400 flex items-center justify-center"
                         >
                           <LuTrash className="w-4 h-4" />
@@ -245,7 +337,9 @@ function App() {
                           <LuFolderSearch className="w-4 h-4" />
                         </button>
                         <button
-                          onClick={() => deleteFile(music.filePath)}
+                          onClick={() =>
+                            deleteFile(music.filePath, music.fileName)
+                          }
                           className="p-1.5 ml-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition duration-300 focus:outline-none focus:ring-2 focus:ring-red-400 flex items-center justify-center"
                         >
                           <LuTrash className="w-4 h-4" />
