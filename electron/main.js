@@ -27,7 +27,7 @@ function createWindow() {
     icon: path.join(__dirname, "..", "icon.ico"),
   });
 
-  // Development
+  // Development;
   // win.loadURL("http://localhost:3000");
 
   // Production

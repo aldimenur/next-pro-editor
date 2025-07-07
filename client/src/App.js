@@ -56,7 +56,7 @@ function App() {
   const [musicTotalPages, setMusicTotalPages] = useState(1);
   const [isNavCollapsed, setIsNavCollapsed] = useState(false);
   const [gridColumns, setGridColumns] = useState(3);
-  const [limit, setLimit] = useState(5);
+  const [limit, setLimit] = useState(6);
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [errorMessage, setErrorMessage] = useState(null);
 
@@ -261,23 +261,27 @@ function App() {
                       <p className="font-medium text-gray-800 truncate text-sm">
                         {sound.fileName}
                       </p>
-                      <div className="flex items-center">
-                        <button
-                          onClick={() => {
-                            window.electronAPI.openFileLocation(sound.filePath);
-                          }}
-                          className="p-1.5 ml-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition duration-300 focus:outline-none focus:ring-2 focus:ring-blue-400 flex items-center justify-center"
-                        >
-                          <LuFolderSearch className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() =>
-                            deleteFile(sound.filePath, sound.fileName)
-                          }
-                          className="p-1.5 ml-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition duration-300 focus:outline-none focus:ring-2 focus:ring-red-400 flex items-center justify-center"
-                        >
-                          <LuTrash className="w-4 h-4" />
-                        </button>
+                      <div className="absolute right-2 bottom-2">
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={() => {
+                              window.electronAPI.openFileLocation(
+                                sound.filePath
+                              );
+                            }}
+                            className="p-1.5 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition duration-300 focus:outline-none focus:ring-2 focus:ring-blue-400 flex items-center justify-center"
+                          >
+                            <LuFolderSearch className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() =>
+                              deleteFile(sound.filePath, sound.fileName)
+                            }
+                            className="p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition duration-300 focus:outline-none focus:ring-2 focus:ring-red-400 flex items-center justify-center"
+                          >
+                            <LuTrash className="w-4 h-4" />
+                          </button>
+                        </div>
                       </div>
                     </div>
                     <div className="border border-gray-200 rounded-lg p-2 mb-2 bg-white hover:border-red-500 onk transition duration-300 ease-in-out">
@@ -300,36 +304,32 @@ function App() {
                       <p className="font-medium text-gray-800 truncate text-sm">
                         {video.fileName}
                       </p>
-                      <div className="flex items-center">
-                        <button
-                          onClick={() => {
-                            window.electronAPI.openFileLocation(video.filePath);
-                          }}
-                          className="p-1.5 ml-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition duration-300 focus:outline-none focus:ring-2 focus:ring-blue-400 flex items-center justify-center"
-                        >
-                          <LuFolderSearch className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() =>
-                            deleteFile(video.filePath, video.fileName)
-                          }
-                          className="p-1.5 ml-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition duration-300 focus:outline-none focus:ring-2 focus:ring-red-400 flex items-center justify-center"
-                        >
-                          <LuTrash className="w-4 h-4" />
-                        </button>
+                      <div className="absolute right-2 bottom-2">
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={() => {
+                              window.electronAPI.openFileLocation(
+                                video.filePath
+                              );
+                            }}
+                            className="p-1.5 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition duration-300 focus:outline-none focus:ring-2 focus:ring-blue-400 flex items-center justify-center"
+                          >
+                            <LuFolderSearch className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() =>
+                              deleteFile(video.filePath, video.fileName)
+                            }
+                            className="p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition duration-300 focus:outline-none focus:ring-2 focus:ring-red-400 flex items-center justify-center"
+                          >
+                            <LuTrash className="w-4 h-4" />
+                          </button>
+                        </div>
                       </div>
                     </div>
                     <div className="border border-gray-200 rounded-lg p-2 mb-2 bg-white hover:border-red-500 onk transition duration-300 ease-in-out">
                       <VideoPlayer filePath={video.filePath} />
                     </div>
-                    <button
-                      onClick={() => {
-                        window.electronAPI.openFileLocation(video.filePath);
-                      }}
-                      className="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 transition duration-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                    >
-                      Open File Location
-                    </button>
                   </div>
                 ))}
               {activeSection === "music" &&
@@ -347,36 +347,32 @@ function App() {
                       <p className="font-medium text-gray-800 truncate text-sm">
                         {music.fileName}
                       </p>
-                      <div className="flex items-center">
-                        <button
-                          onClick={() => {
-                            window.electronAPI.openFileLocation(music.filePath);
-                          }}
-                          className="p-1.5 ml-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition duration-300 focus:outline-none focus:ring-2 focus:ring-blue-400 flex items-center justify-center"
-                        >
-                          <LuFolderSearch className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() =>
-                            deleteFile(music.filePath, music.fileName)
-                          }
-                          className="p-1.5 ml-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition duration-300 focus:outline-none focus:ring-2 focus:ring-red-400 flex items-center justify-center"
-                        >
-                          <LuTrash className="w-4 h-4" />
-                        </button>
+                      <div className="absolute right-2 bottom-2">
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={() => {
+                              window.electronAPI.openFileLocation(
+                                music.filePath
+                              );
+                            }}
+                            className="p-1.5 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition duration-300 focus:outline-none focus:ring-2 focus:ring-blue-400 flex items-center justify-center"
+                          >
+                            <LuFolderSearch className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() =>
+                              deleteFile(music.filePath, music.fileName)
+                            }
+                            className="p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition duration-300 focus:outline-none focus:ring-2 focus:ring-red-400 flex items-center justify-center"
+                          >
+                            <LuTrash className="w-4 h-4" />
+                          </button>
+                        </div>
                       </div>
                     </div>
                     <div className="border border-gray-200 rounded-lg p-2 mb-2 bg-white hover:border-red-500 onk transition duration-300 ease-in-out">
                       <SoundPlayer filePath={music.filePath} />
                     </div>
-                    <button
-                      onClick={() => {
-                        window.electronAPI.openFileLocation(music.filePath);
-                      }}
-                      className="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 transition duration-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                    >
-                      Open File Location
-                    </button>
                   </div>
                 ))}
             </div>
