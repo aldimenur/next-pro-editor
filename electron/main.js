@@ -8,7 +8,47 @@ const MUSIC_DIR = path.join(__dirname, "../assets/musics");
 const VIDEO_DIR = path.join(__dirname, "../assets/videos");
 const ICON_DIR = path.join(__dirname, "../assets/icons");
 
-// Helper to copy a single asset file into the correct destination
+let win;
+
+function createWindow() {
+  win = new BrowserWindow({
+    width: 1024,
+    height: 768,
+    webPreferences: {
+      contextIsolation: true,
+      preload: path.join(__dirname, "preload.js"),
+      nodeIntegration: false,
+      webSecurity: false,
+      allowRunningInsecureContent: true,
+      enableRemoteModule: false,
+      sandbox: false,
+    },
+    autoHideMenuBar: true,
+    title: "Next Pro Editor - Aldimenur",
+    icon: path.join(__dirname, "..", "icon.ico"),
+  });
+
+  // Development;
+
+  // win.loadURL("http://localhost:4000");
+
+  // Production
+
+  serverProcess = spawn("node", [path.join(__dirname, "../server/index.js")], {
+    cwd: __dirname,
+    stdio: "pipe",
+  });
+  setTimeout(() => {
+    win.loadURL("http://localhost:4000");
+  }, 2000);
+  win.once("ready-to-show", () => {
+    win.show();
+  });
+  win.on("closed", () => {
+    serverProcess.kill();
+  });
+}
+
 async function copyAsset(filePath, assetType) {
   if (!filePath || !assetType) {
     throw new Error("filePath and assetType are required");
@@ -34,7 +74,6 @@ async function copyAsset(filePath, assetType) {
   const ext = path.extname(originalName);
   const baseName = path.basename(originalName, ext);
 
-  // Ensure unique filename
   let counter = 1;
   while (true) {
     try {
@@ -50,46 +89,6 @@ async function copyAsset(filePath, assetType) {
   return destPath;
 }
 
-let win;
-
-function createWindow() {
-  win = new BrowserWindow({
-    width: 1024,
-    height: 768,
-    webPreferences: {
-      contextIsolation: true,
-      preload: path.join(__dirname, "preload.js"),
-      nodeIntegration: false,
-      webSecurity: false,
-      allowRunningInsecureContent: true,
-      enableRemoteModule: false,
-      sandbox: false,
-    },
-    autoHideMenuBar: true,
-    title: "Next Pro Editor - Aldimenur",
-    icon: path.join(__dirname, "..", "icon.ico"),
-  });
-
-  // Development;
-  win.loadURL("http://localhost:4000");
-
-  // Production
-  // serverProcess = spawn("node", [path.join(__dirname, "../server/index.js")], {
-  //   cwd: __dirname,
-  //   stdio: "pipe",
-  // });
-  // setTimeout(() => {
-  //   win.loadURL("http://localhost:4000");
-  // }, 2000);
-  // win.once("ready-to-show", () => {
-  //   win.show();
-  // });
-  // win.on("closed", () => {
-  //   serverProcess.kill();
-  // });
-}
-
-// Helper function to recursively get files from a directory
 async function getFilesRecursively(dir, fileTypes, acc = []) {
   const entries = await fs.readdir(dir, { withFileTypes: true });
   for (const e of entries) {
@@ -102,6 +101,7 @@ async function getFilesRecursively(dir, fileTypes, acc = []) {
   }
   return acc;
 }
+
 
 ipcMain.handle("openFileLocation", async (_event, filePath) => {
   shell.showItemInFolder(filePath);
