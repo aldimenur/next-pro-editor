@@ -1,5 +1,9 @@
 # 🎬 Next Pro Editor
 
+## 📋 TODO List
+
+- [ ] Tambahkan fitur scan asset otomatis: Bisa add asset dengan scan seluruh folder jika memiliki ekstensi yang didukung akan langsung bisa ter-import
+
 Next Pro Editor adalah aplikasi desktop inovatif yang dirancang untuk memudahkan pengeditan dan manajemen multimedia. Dengan menggunakan teknologi terkini, aplikasi ini menawarkan pengalaman pengguna yang mulus dan powerful.
 
 ---
