@@ -28,7 +28,7 @@ function createWindow() {
   });
 
   // Development;
-  // win.loadURL("http://localhost:3000");
+  // win.loadURL("http://localhost:4000");
 
   // Production
   serverProcess = spawn("node", [path.join(__dirname, "../server/index.js")], {
@@ -36,7 +36,7 @@ function createWindow() {
     stdio: "pipe",
   });
   setTimeout(() => {
-    win.loadURL("http://localhost:3001");
+    win.loadURL("http://localhost:4000");
   }, 2000);
   win.once("ready-to-show", () => {
     win.show();

@@ -1,6 +1,6 @@
 {
   "name": "next-pro-editor",
-  "version": "1.0.0",
+  "version": "0.2.0",
   "description": "App for becoming Pro Editor",
   "main": "electron/main.js",
   "scripts": {
