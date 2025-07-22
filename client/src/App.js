@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
-import { Dialog } from "@headlessui/react";
+import { Dialog, DialogTitle, DialogPanel } from "@headlessui/react";
 import SoundPlayer from "./components/SoundPlayer";
 import VideoPlayer from "./components/VideoPlayer";
+import AddAsset from "./components/AddAsset";
 import LeftNavigation from "./components/LeftNavigation";
 import { LuFolderSearch, LuTrash, LuX, LuCheck } from "react-icons/lu";
 
@@ -14,10 +15,10 @@ function ConfirmationModal({ isOpen, onClose, onConfirm, fileName }) {
     >
       <div className="fixed inset-0 bg-black/50" aria-hidden="true" />
       <div className="fixed inset-0 flex w-screen items-center justify-center p-4">
-        <Dialog.Panel className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
-          <Dialog.Title className="text-lg font-bold text-gray-900 mb-4">
+        <DialogPanel className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
+          <DialogTitle className="text-lg font-bold text-gray-900 mb-4">
             Confirm File Deletion
-          </Dialog.Title>
+          </DialogTitle>
           <p className="text-sm text-gray-600 mb-6">
             Are you sure you want to delete the file:{" "}
             <span className="font-semibold">{fileName}</span>?
@@ -38,7 +39,7 @@ function ConfirmationModal({ isOpen, onClose, onConfirm, fileName }) {
               <LuCheck className="mr-2" /> Delete
             </button>
           </div>
-        </Dialog.Panel>
+        </DialogPanel>
       </div>
     </Dialog>
   );
@@ -73,13 +74,10 @@ function App() {
       }
     };
 
-    // Add event listener
     window.addEventListener("resize", handleResize);
 
-    // Initial check
     handleResize();
 
-    // Cleanup event listener on component unmount
     return () => {
       window.removeEventListener("resize", handleResize);
     };
@@ -224,202 +222,214 @@ function App() {
         `}
       >
         <div className="mx-auto bg-white shadow-lg rounded-xl p-6 flex flex-col h-full">
-          {/* Search Input */}
-          <div className="mb-3">
-            <input
-              type="text"
-              placeholder={`Search ${activeSection.toUpperCase()} files...`}
-              value={searchTerm}
-              onChange={(e) => {
-                setSearchTerm(e.target.value);
-                setPage(1); // reset to first page when searching
-              }}
-              className="w-full p-2 text-sm border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300"
-            />
-          </div>
+          {activeSection !== "upload" && (
+            <div className="mb-3">
+              <input
+                type="text"
+                placeholder={`Search ${activeSection.toUpperCase()} files...`}
+                value={searchTerm}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setPage(1); // reset to first page when searching
+                }}
+                className="w-full p-2 text-sm border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300"
+              />
+            </div>
+          )}
 
           <div className="flex-1 flex flex-col h-full overflow-y-auto">
-            {/* Media Grid */}
-            <div
-              className={`grid gap-4 mb-6 relative w-full box-border flex-1`}
-              style={{
-                gridTemplateColumns: `repeat(${gridColumns}, 1fr)`,
-              }}
-            >
-              {activeSection === "sfx" &&
-                sounds.map((sound, index) => (
-                  <div
-                    key={index}
-                    className="h-fit bg-gray-50 border border-gray-200 rounded-lg p-3 hover:shadow-md transition duration-300 ease-in-out transform cursor-pointer min-w-0"
-                    draggable
-                    onDragStart={(e) => {
-                      e.preventDefault();
-                      window.electronAPI.onDragStart(sound.filePath);
-                    }}
-                  >
-                    <div className="flex justify-between items-center mb-1">
-                      <p className="font-medium text-gray-800 truncate text-sm">
-                        {sound.fileName}
-                      </p>
-                      <div className="absolute right-2 bottom-2">
-                        <div className="flex items-center gap-1">
-                          <button
-                            onClick={() => {
-                              window.electronAPI.openFileLocation(
-                                sound.filePath
-                              );
-                            }}
-                            className="p-1.5 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition duration-300 focus:outline-none focus:ring-2 focus:ring-blue-400 flex items-center justify-center"
-                          >
-                            <LuFolderSearch className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() =>
-                              deleteFile(sound.filePath, sound.fileName)
-                            }
-                            className="p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition duration-300 focus:outline-none focus:ring-2 focus:ring-red-400 flex items-center justify-center"
-                          >
-                            <LuTrash className="w-4 h-4" />
-                          </button>
+            {activeSection === "upload" ? (
+              <AddAsset
+                onUploadSuccess={() => {
+                  // Refresh lists after successful upload
+                  fetchSounds();
+                  fetchVideos();
+                  fetchMusic();
+                }}
+              />
+            ) : (
+              <div
+                className={`grid gap-4 mb-6 relative w-full box-border flex-1`}
+                style={{
+                  gridTemplateColumns: `repeat(${gridColumns}, 1fr)`,
+                }}
+              >
+                {activeSection === "sfx" &&
+                  sounds.map((sound, index) => (
+                    <div
+                      key={index}
+                      className="h-fit bg-gray-50 border border-gray-200 rounded-lg p-3 hover:shadow-md transition duration-300 ease-in-out transform cursor-pointer min-w-0"
+                      draggable
+                      onDragStart={(e) => {
+                        e.preventDefault();
+                        window.electronAPI.onDragStart(sound.filePath);
+                      }}
+                    >
+                      <div className="flex justify-between items-center mb-1">
+                        <p className="font-medium text-gray-800 truncate text-sm">
+                          {sound.fileName}
+                        </p>
+                        <div className="absolute right-2 bottom-2">
+                          <div className="flex items-center gap-1">
+                            <button
+                              onClick={() => {
+                                window.electronAPI.openFileLocation(
+                                  sound.filePath
+                                );
+                              }}
+                              className="p-1.5 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition duration-300 focus:outline-none focus:ring-2 focus:ring-blue-400 flex items-center justify-center"
+                            >
+                              <LuFolderSearch className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() =>
+                                deleteFile(sound.filePath, sound.fileName)
+                              }
+                              className="p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition duration-300 focus:outline-none focus:ring-2 focus:ring-red-400 flex items-center justify-center"
+                            >
+                              <LuTrash className="w-4 h-4" />
+                            </button>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    <div className="border border-gray-200 rounded-lg p-2 mb-2 bg-white hover:border-red-500 onk transition duration-300 ease-in-out">
-                      <SoundPlayer filePath={sound.filePath} />
-                    </div>
-                  </div>
-                ))}
-              {activeSection === "vfx" &&
-                videos.map((video, index) => (
-                  <div
-                    key={index}
-                    className="h-fit bg-gray-50 border border-gray-200 rounded-lg p-3 hover:shadow-md transition duration-300 ease-in-out transform cursor-pointer min-w-0"
-                    draggable
-                    onDragStart={(e) => {
-                      e.preventDefault();
-                      window.electronAPI.onDragStart(video.filePath);
-                    }}
-                  >
-                    <div className="flex justify-between items-center mb-1">
-                      <p className="font-medium text-gray-800 truncate text-sm">
-                        {video.fileName}
-                      </p>
-                      <div className="absolute right-2 bottom-2">
-                        <div className="flex items-center gap-1">
-                          <button
-                            onClick={() => {
-                              window.electronAPI.openFileLocation(
-                                video.filePath
-                              );
-                            }}
-                            className="p-1.5 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition duration-300 focus:outline-none focus:ring-2 focus:ring-blue-400 flex items-center justify-center"
-                          >
-                            <LuFolderSearch className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() =>
-                              deleteFile(video.filePath, video.fileName)
-                            }
-                            className="p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition duration-300 focus:outline-none focus:ring-2 focus:ring-red-400 flex items-center justify-center"
-                          >
-                            <LuTrash className="w-4 h-4" />
-                          </button>
-                        </div>
+                      <div className="border border-gray-200 rounded-lg p-2 mb-2 bg-white hover:border-red-500 onk transition duration-300 ease-in-out">
+                        <SoundPlayer filePath={sound.filePath} />
                       </div>
                     </div>
-                    <div className="border border-gray-200 rounded-lg p-2 mb-2 bg-white hover:border-red-500 onk transition duration-300 ease-in-out">
-                      <VideoPlayer filePath={video.filePath} />
-                    </div>
-                  </div>
-                ))}
-              {activeSection === "music" &&
-                music.map((music, index) => (
-                  <div
-                    key={index}
-                    className="h-fit bg-gray-50 border border-gray-200 rounded-lg p-3 hover:shadow-md transition duration-300 ease-in-out transform cursor-pointer min-w-0"
-                    draggable
-                    onDragStart={(e) => {
-                      e.preventDefault();
-                      window.electronAPI.onDragStart(music.filePath);
-                    }}
-                  >
-                    <div className="flex justify-between items-center mb-1">
-                      <p className="font-medium text-gray-800 truncate text-sm">
-                        {music.fileName}
-                      </p>
-                      <div className="absolute right-2 bottom-2">
-                        <div className="flex items-center gap-1">
-                          <button
-                            onClick={() => {
-                              window.electronAPI.openFileLocation(
-                                music.filePath
-                              );
-                            }}
-                            className="p-1.5 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition duration-300 focus:outline-none focus:ring-2 focus:ring-blue-400 flex items-center justify-center"
-                          >
-                            <LuFolderSearch className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() =>
-                              deleteFile(music.filePath, music.fileName)
-                            }
-                            className="p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition duration-300 focus:outline-none focus:ring-2 focus:ring-red-400 flex items-center justify-center"
-                          >
-                            <LuTrash className="w-4 h-4" />
-                          </button>
+                  ))}
+                {activeSection === "vfx" &&
+                  videos.map((video, index) => (
+                    <div
+                      key={index}
+                      className="h-fit bg-gray-50 border border-gray-200 rounded-lg p-3 hover:shadow-md transition duration-300 ease-in-out transform cursor-pointer min-w-0"
+                      draggable
+                      onDragStart={(e) => {
+                        e.preventDefault();
+                        window.electronAPI.onDragStart(video.filePath);
+                      }}
+                    >
+                      <div className="flex justify-between items-center mb-1">
+                        <p className="font-medium text-gray-800 truncate text-sm">
+                          {video.fileName}
+                        </p>
+                        <div className="absolute right-2 bottom-2">
+                          <div className="flex items-center gap-1">
+                            <button
+                              onClick={() => {
+                                window.electronAPI.openFileLocation(
+                                  video.filePath
+                                );
+                              }}
+                              className="p-1.5 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition duration-300 focus:outline-none focus:ring-2 focus:ring-blue-400 flex items-center justify-center"
+                            >
+                              <LuFolderSearch className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() =>
+                                deleteFile(video.filePath, video.fileName)
+                              }
+                              className="p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition duration-300 focus:outline-none focus:ring-2 focus:ring-red-400 flex items-center justify-center"
+                            >
+                              <LuTrash className="w-4 h-4" />
+                            </button>
+                          </div>
                         </div>
                       </div>
+                      <div className="border border-gray-200 rounded-lg p-2 mb-2 bg-white hover:border-red-500 onk transition duration-300 ease-in-out">
+                        <VideoPlayer filePath={video.filePath} />
+                      </div>
                     </div>
-                    <div className="border border-gray-200 rounded-lg p-2 mb-2 bg-white hover:border-red-500 onk transition duration-300 ease-in-out">
-                      <SoundPlayer filePath={music.filePath} />
+                  ))}
+                {activeSection === "music" &&
+                  music.map((music, index) => (
+                    <div
+                      key={index}
+                      className="h-fit bg-gray-50 border border-gray-200 rounded-lg p-3 hover:shadow-md transition duration-300 ease-in-out transform cursor-pointer min-w-0"
+                      draggable
+                      onDragStart={(e) => {
+                        e.preventDefault();
+                        window.electronAPI.onDragStart(music.filePath);
+                      }}
+                    >
+                      <div className="flex justify-between items-center mb-1">
+                        <p className="font-medium text-gray-800 truncate text-sm">
+                          {music.fileName}
+                        </p>
+                        <div className="absolute right-2 bottom-2">
+                          <div className="flex items-center gap-1">
+                            <button
+                              onClick={() => {
+                                window.electronAPI.openFileLocation(
+                                  music.filePath
+                                );
+                              }}
+                              className="p-1.5 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition duration-300 focus:outline-none focus:ring-2 focus:ring-blue-400 flex items-center justify-center"
+                            >
+                              <LuFolderSearch className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() =>
+                                deleteFile(music.filePath, music.fileName)
+                              }
+                              className="p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition duration-300 focus:outline-none focus:ring-2 focus:ring-red-400 flex items-center justify-center"
+                            >
+                              <LuTrash className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="border border-gray-200 rounded-lg p-2 mb-2 bg-white hover:border-red-500 onk transition duration-300 ease-in-out">
+                        <SoundPlayer filePath={music.filePath} />
+                      </div>
                     </div>
-                  </div>
-                ))}
-            </div>
+                  ))}
+              </div>
+            )}
           </div>
-          {/* Pagination Controls */}
-          <div className="flex justify-center items-center space-x-4 mt-3">
-            <button
-              onClick={() => setPage((p) => Math.max(p - 1, 1))}
-              disabled={page === 1}
-              className="px-3 py-1 bg-gray-200 text-gray-700 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-300 transition duration-300"
-            >
-              Prev
-            </button>
-            <span className="text-gray-600 text-sm">
-              Page {page} of{" "}
-              {activeSection === "sfx"
-                ? soundsTotalPages
-                : activeSection === "vfx"
-                ? videosTotalPages
-                : musicTotalPages}
-            </span>
-            <button
-              onClick={() =>
-                setPage((p) =>
-                  Math.min(
-                    p + 1,
-                    activeSection === "sfx"
-                      ? soundsTotalPages
-                      : activeSection === "vfx"
-                      ? videosTotalPages
-                      : musicTotalPages
-                  )
-                )
-              }
-              disabled={
-                page ===
-                (activeSection === "sfx"
+          {activeSection !== "upload" && (
+            <div className="flex justify-center items-center space-x-4 mt-3">
+              <button
+                onClick={() => setPage((p) => Math.max(p - 1, 1))}
+                disabled={page === 1}
+                className="px-3 py-1 bg-gray-200 text-gray-700 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-300 transition duration-300"
+              >
+                Prev
+              </button>
+              <span className="text-gray-600 text-sm">
+                Page {page} of{" "}
+                {activeSection === "sfx"
                   ? soundsTotalPages
                   : activeSection === "vfx"
                   ? videosTotalPages
-                  : musicTotalPages)
-              }
-              className="px-3 py-1 bg-gray-200 text-gray-700 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-300 transition duration-300"
-            >
-              Next
-            </button>
-          </div>
+                  : musicTotalPages}
+              </span>
+              <button
+                onClick={() =>
+                  setPage((p) =>
+                    Math.min(
+                      p + 1,
+                      activeSection === "sfx"
+                        ? soundsTotalPages
+                        : activeSection === "vfx"
+                        ? videosTotalPages
+                        : musicTotalPages
+                    )
+                  )
+                }
+                disabled={
+                  page ===
+                  (activeSection === "sfx"
+                    ? soundsTotalPages
+                    : activeSection === "vfx"
+                    ? videosTotalPages
+                    : musicTotalPages)
+                }
+                className="px-3 py-1 bg-gray-200 text-gray-700 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-300 transition duration-300"
+              >
+                Next
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

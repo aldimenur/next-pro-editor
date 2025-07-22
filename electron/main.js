@@ -8,6 +8,48 @@ const MUSIC_DIR = path.join(__dirname, "../assets/musics");
 const VIDEO_DIR = path.join(__dirname, "../assets/videos");
 const ICON_DIR = path.join(__dirname, "../assets/icons");
 
+// Helper to copy a single asset file into the correct destination
+async function copyAsset(filePath, assetType) {
+  if (!filePath || !assetType) {
+    throw new Error("filePath and assetType are required");
+  }
+
+  let destinationDir;
+  switch (assetType) {
+    case "sfx":
+      destinationDir = SOUND_DIR;
+      break;
+    case "vfx":
+      destinationDir = VIDEO_DIR;
+      break;
+    case "music":
+      destinationDir = MUSIC_DIR;
+      break;
+    default:
+      throw new Error(`Unsupported asset type: ${assetType}`);
+  }
+
+  const originalName = path.basename(filePath);
+  let destPath = path.join(destinationDir, originalName);
+  const ext = path.extname(originalName);
+  const baseName = path.basename(originalName, ext);
+
+  // Ensure unique filename
+  let counter = 1;
+  while (true) {
+    try {
+      await fs.access(destPath);
+      destPath = path.join(destinationDir, `${baseName}_${counter}${ext}`);
+      counter += 1;
+    } catch (_) {
+      break;
+    }
+  }
+
+  await fs.copyFile(filePath, destPath);
+  return destPath;
+}
+
 let win;
 
 function createWindow() {
@@ -21,6 +63,7 @@ function createWindow() {
       webSecurity: false,
       allowRunningInsecureContent: true,
       enableRemoteModule: false,
+      sandbox: false,
     },
     autoHideMenuBar: true,
     title: "Next Pro Editor - Aldimenur",
@@ -28,22 +71,22 @@ function createWindow() {
   });
 
   // Development;
-  // win.loadURL("http://localhost:4000");
+  win.loadURL("http://localhost:4000");
 
   // Production
-  serverProcess = spawn("node", [path.join(__dirname, "../server/index.js")], {
-    cwd: __dirname,
-    stdio: "pipe",
-  });
-  setTimeout(() => {
-    win.loadURL("http://localhost:4000");
-  }, 2000);
-  win.once("ready-to-show", () => {
-    win.show();
-  });
-  win.on("closed", () => {
-    serverProcess.kill();
-  });
+  // serverProcess = spawn("node", [path.join(__dirname, "../server/index.js")], {
+  //   cwd: __dirname,
+  //   stdio: "pipe",
+  // });
+  // setTimeout(() => {
+  //   win.loadURL("http://localhost:4000");
+  // }, 2000);
+  // win.once("ready-to-show", () => {
+  //   win.show();
+  // });
+  // win.on("closed", () => {
+  //   serverProcess.kill();
+  // });
 }
 
 // Helper function to recursively get files from a directory
@@ -199,6 +242,62 @@ ipcMain.on("onDragStart", (event, filePath) => {
       "Hopstarter-Sleek-Xp-Basic-Document-Blank.32.png"
     ),
   });
+});
+
+ipcMain.handle("addAsset", async (_event, params = {}) => {
+  console.log("addAsset called with", params);
+  try {
+    const { filePath, assetType } = params;
+    const destPath = await copyAsset(filePath, assetType);
+    return { success: true, destPath };
+  } catch (error) {
+    console.error("Error adding asset:", error);
+    return { success: false, error: error.message };
+  }
+});
+
+ipcMain.handle("importAssets", async (_event, params = {}) => {
+  const { assetType } = params;
+  if (!assetType) {
+    return { success: false, error: "assetType is required" };
+  }
+
+  let filters;
+  switch (assetType) {
+    case "sfx":
+      filters = [{ name: "Audio", extensions: ["mp3", "wav", "m4a"] }];
+      break;
+    case "music":
+      filters = [{ name: "Audio", extensions: ["mp3", "wav"] }];
+      break;
+    case "vfx":
+      filters = [{ name: "Video", extensions: ["mp4", "mov"] }];
+      break;
+    default:
+      filters = [{ name: "All Files", extensions: ["*"] }];
+  }
+
+  const { canceled, filePaths } = await dialog.showOpenDialog(win, {
+    properties: ["openFile", "multiSelections"],
+    filters,
+  });
+
+  if (canceled || !filePaths.length) {
+    return { success: false, canceled: true };
+  }
+
+  const results = [];
+
+  for (const filePath of filePaths) {
+    try {
+      const dest = await copyAsset(filePath, assetType);
+      results.push({ success: true, destPath: dest });
+    } catch (err) {
+      results.push({ success: false, error: err.message });
+    }
+  }
+
+  return { success: true, imported: results };
 });
 
 app.whenReady().then(() => {

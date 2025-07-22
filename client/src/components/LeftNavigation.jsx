@@ -7,6 +7,7 @@ import {
   FaChevronRight,
   FaMinus,
   FaPlus,
+  FaUpload,
 } from "react-icons/fa";
 
 const LeftNavigation = ({
@@ -16,13 +17,13 @@ const LeftNavigation = ({
   setActiveSection,
   increaseGridColumns,
   decreaseGridColumns,
-  gridColumns,
 }) => {
   // Navigation sections with icons
   const sections = [
     { id: "sfx", label: "Sound Effects", icon: FaVolumeUp },
     { id: "vfx", label: "Video Effects", icon: FaVideo },
     { id: "music", label: "Music", icon: FaMusic },
+    { id: "upload", label: "Add Assets", icon: FaUpload },
   ];
 
   return (

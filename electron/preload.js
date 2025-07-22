@@ -8,4 +8,6 @@ contextBridge.exposeInMainWorld("electronAPI", {
   deleteFile: (filePath) => ipcRenderer.send("deleteFile", filePath),
   openFileLocation: (filePath) =>
     ipcRenderer.invoke("openFileLocation", filePath),
+  addAsset: (params) => ipcRenderer.invoke("addAsset", params),
+  importAssets: (params) => ipcRenderer.invoke("importAssets", params),
 });
