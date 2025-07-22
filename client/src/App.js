@@ -1,4 +1,10 @@
 import { useState, useEffect } from "react";
+import useAssets from "./hooks/useAssets";
+import {
+  deleteFile as deleteFileService,
+  onDragStart as onDragStartService,
+  openFileLocation as openFileLocationService,
+} from "./services/assetService";
 import SoundPlayer from "./components/SoundPlayer";
 import VideoPlayer from "./components/VideoPlayer";
 import AddAsset from "./components/AddAsset";
@@ -8,65 +14,33 @@ import ConfirmationDialog from "./components/ConfirmationDialog";
 
 function App() {
   const [activeSection, setActiveSection] = useState("sfx");
-  const [sounds, setSounds] = useState([]);
-  const [videos, setVideos] = useState([]);
-  const [music, setMusic] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [page, setPage] = useState(1);
-  const [soundsTotalPages, setSoundsTotalPages] = useState(1);
-  const [videosTotalPages, setVideosTotalPages] = useState(1);
-  const [musicTotalPages, setMusicTotalPages] = useState(1);
   const [isNavCollapsed, setIsNavCollapsed] = useState(false);
   const [gridColumns, setGridColumns] = useState(3);
   const [limit, setLimit] = useState(6);
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [errorMessage, setErrorMessage] = useState(null);
 
+  const {
+    files: sounds,
+    totalPages: soundsTotalPages,
+    refetch: refetchSounds,
+  } = useAssets("sfx", { page, limit, search: searchTerm });
+  const {
+    files: videos,
+    totalPages: videosTotalPages,
+    refetch: refetchVideos,
+  } = useAssets("vfx", { page, limit, search: searchTerm });
+  const {
+    files: music,
+    totalPages: musicTotalPages,
+    refetch: refetchMusic,
+  } = useAssets("music", { page, limit, search: searchTerm });
+
   useEffect(() => {
     document.title = "Next Pro Editor";
   }, []);
-
-  const fetchSounds = async () => {
-    try {
-      const data = await window.electronAPI.getSoundEffects({
-        page,
-        limit,
-        search: searchTerm,
-      });
-      setSounds(data.files || []);
-      setSoundsTotalPages(data.totalPages || 1);
-    } catch (error) {
-      setErrorMessage(`Failed to fetch sound effects: ${error.message}`);
-    }
-  };
-
-  const fetchVideos = async () => {
-    try {
-      const data = await window.electronAPI.getVideoEffects({
-        page,
-        limit,
-        search: searchTerm,
-      });
-      setVideos(data.files || []);
-      setVideosTotalPages(data.totalPages || 1);
-    } catch (error) {
-      setErrorMessage(`Failed to fetch video effects: ${error.message}`);
-    }
-  };
-
-  const fetchMusic = async () => {
-    try {
-      const data = await window.electronAPI.getMusic({
-        page,
-        limit,
-        search: searchTerm,
-      });
-      setMusic(data.files || []);
-      setMusicTotalPages(data.totalPages || 1);
-    } catch (error) {
-      setErrorMessage(`Failed to fetch music: ${error.message}`);
-    }
-  };
 
   const deleteFile = async (filePath, fileName) => {
     setConfirmDelete({ filePath, fileName });
@@ -76,48 +50,29 @@ function App() {
     if (!confirmDelete) return;
 
     try {
-      await window.electronAPI.deleteFile(confirmDelete.filePath);
-      setSounds(
-        sounds.filter((sound) => sound.filePath !== confirmDelete.filePath)
-      );
-      setVideos(
-        videos.filter((video) => video.filePath !== confirmDelete.filePath)
-      );
-      setMusic(
-        music.filter((music) => music.filePath !== confirmDelete.filePath)
-      );
+      await deleteFileService(confirmDelete.filePath);
+      refetchSounds();
+      refetchVideos();
+      refetchMusic();
       setConfirmDelete(null);
     } catch (error) {
       setErrorMessage(`Error deleting file: ${error.message}`);
       console.error("Error deleting file:", error);
     }
   };
-  // Fetch on initial render and whenever page/searchTerm/activeSection changes
-  useEffect(() => {
-    fetchSounds();
-    if (activeSection === "vfx") {
-      fetchVideos();
-    }
-    if (activeSection === "music") {
-      fetchMusic();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, searchTerm, activeSection, gridColumns]);
 
-  // Grid column control handlers
   const increaseGridColumns = () => {
-    setGridColumns(Math.min(gridColumns + 1, 6)); // Max 6 columns
+    setGridColumns(Math.min(gridColumns + 1, 6));
     setLimit(Math.min(limit + 5, 20));
   };
 
   const decreaseGridColumns = () => {
-    setGridColumns(Math.max(gridColumns - 1, 1)); // Min 1 column
+    setGridColumns(Math.max(gridColumns - 1, 1));
     setLimit(Math.max(limit - 5, 5));
   };
 
   return (
     <div className="flex bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen font-sans">
-      {/* Confirmation Modal */}
       {confirmDelete && (
         <ConfirmationDialog
           isOpen={!!confirmDelete}
@@ -127,7 +82,6 @@ function App() {
         />
       )}
 
-      {/* Error Toast */}
       {errorMessage && (
         <div className="fixed top-4 right-4 z-50 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg flex items-center">
           <span className="mr-2">{errorMessage}</span>
@@ -140,7 +94,6 @@ function App() {
         </div>
       )}
 
-      {/* Left Navigation */}
       <LeftNavigation
         isNavCollapsed={isNavCollapsed}
         setIsNavCollapsed={setIsNavCollapsed}
@@ -151,7 +104,6 @@ function App() {
         gridColumns={gridColumns}
       />
 
-      {/* Main Content Area */}
       <div
         className={`
           flex-1
@@ -173,7 +125,7 @@ function App() {
                 value={searchTerm}
                 onChange={(e) => {
                   setSearchTerm(e.target.value);
-                  setPage(1); // reset to first page when searching
+                  setPage(1);
                 }}
                 className="w-full p-2 text-sm border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300"
               />
@@ -184,10 +136,9 @@ function App() {
             {activeSection === "upload" ? (
               <AddAsset
                 onUploadSuccess={() => {
-                  // Refresh lists after successful upload
-                  fetchSounds();
-                  fetchVideos();
-                  fetchMusic();
+                  refetchSounds();
+                  refetchVideos();
+                  refetchMusic();
                 }}
               />
             ) : (
@@ -205,7 +156,7 @@ function App() {
                       draggable
                       onDragStart={(e) => {
                         e.preventDefault();
-                        window.electronAPI.onDragStart(sound.filePath);
+                        onDragStartService(sound.filePath);
                       }}
                     >
                       <div className="flex justify-between items-center mb-1">
@@ -216,9 +167,7 @@ function App() {
                           <div className="flex items-center gap-1">
                             <button
                               onClick={() => {
-                                window.electronAPI.openFileLocation(
-                                  sound.filePath
-                                );
+                                openFileLocationService(sound.filePath);
                               }}
                               className="p-1.5 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition duration-300 focus:outline-none focus:ring-2 focus:ring-blue-400 flex items-center justify-center"
                             >
@@ -248,7 +197,7 @@ function App() {
                       draggable
                       onDragStart={(e) => {
                         e.preventDefault();
-                        window.electronAPI.onDragStart(video.filePath);
+                        onDragStartService(video.filePath);
                       }}
                     >
                       <div className="flex justify-between items-center mb-1">
@@ -259,9 +208,7 @@ function App() {
                           <div className="flex items-center gap-1">
                             <button
                               onClick={() => {
-                                window.electronAPI.openFileLocation(
-                                  video.filePath
-                                );
+                                openFileLocationService(video.filePath);
                               }}
                               className="p-1.5 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition duration-300 focus:outline-none focus:ring-2 focus:ring-blue-400 flex items-center justify-center"
                             >
@@ -291,7 +238,7 @@ function App() {
                       draggable
                       onDragStart={(e) => {
                         e.preventDefault();
-                        window.electronAPI.onDragStart(music.filePath);
+                        onDragStartService(music.filePath);
                       }}
                     >
                       <div className="flex justify-between items-center mb-1">
@@ -302,9 +249,7 @@ function App() {
                           <div className="flex items-center gap-1">
                             <button
                               onClick={() => {
-                                window.electronAPI.openFileLocation(
-                                  music.filePath
-                                );
+                                openFileLocationService(music.filePath);
                               }}
                               className="p-1.5 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition duration-300 focus:outline-none focus:ring-2 focus:ring-blue-400 flex items-center justify-center"
                             >

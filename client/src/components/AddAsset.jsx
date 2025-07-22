@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { importAssets } from "../services/assetService";
 
 const assetOptions = [
   { id: "sfx", label: "Sound Effect" },
@@ -31,7 +32,7 @@ function AddAsset({ onUploadSuccess }) {
       </div>
       <button
         onClick={async () => {
-          const res = await window.electronAPI.importAssets({ assetType });
+          const res = await importAssets({ assetType });
           if (res.success) {
             setMessage({
               type: "success",
