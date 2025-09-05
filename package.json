@@ -13,6 +13,11 @@
     "prebuild": "npm run download-binaries",
     "build": "npm run prebuild && cd client && npm run build",
     "build-app": "node scripts/build-app.js",
+    "build-release": "node scripts/build-release.js",
+    "build-release-all": "node scripts/build-release.js --all-platforms",
+    "build-release-win": "node scripts/build-release.js --platform win32",
+    "build-release-mac": "node scripts/build-release.js --platform darwin",
+    "build-release-linux": "node scripts/build-release.js --platform linux",
     "postinstall": "npm run download-binaries"
   },
   "author": "aldimenur",

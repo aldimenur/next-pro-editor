@@ -40,25 +40,40 @@ function createWindow() {
     icon: path.join(__dirname, "..", "icon.ico"),
   });
 
-  // Development;
+  // Check if we're in development or production
+  const isDev = process.env.NODE_ENV === "development" || process.defaultApp;
 
-  win.loadURL("http://localhost:4000");
+  if (isDev) {
+    // Development mode - connect to dev server
+    win.loadURL("http://localhost:4000");
+    // Optionally open DevTools in development
+    // win.webContents.openDevTools();
+  } else {
+    // Production mode - start embedded server and serve built React app
+    serverProcess = spawn(
+      "node",
+      [path.join(__dirname, "../server/index.js")],
+      {
+        cwd: __dirname,
+        stdio: "pipe",
+      }
+    );
 
-  // Production
+    // Wait for server to start before loading
+    setTimeout(() => {
+      win.loadURL("http://localhost:4000");
+    }, 2000);
 
-  // serverProcess = spawn("node", [path.join(__dirname, "../server/index.js")], {
-  //   cwd: __dirname,
-  //   stdio: "pipe",
-  // });
-  // setTimeout(() => {
-  //   win.loadURL("http://localhost:4000");
-  // }, 2000);
-  // win.once("ready-to-show", () => {
-  //   win.show();
-  // });
-  // win.on("closed", () => {
-  //   serverProcess.kill();
-  // });
+    win.once("ready-to-show", () => {
+      win.show();
+    });
+
+    win.on("closed", () => {
+      if (serverProcess) {
+        serverProcess.kill();
+      }
+    });
+  }
 }
 
 async function copyAsset(filePath, assetType) {
