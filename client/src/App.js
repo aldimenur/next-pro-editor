@@ -10,6 +10,7 @@ import VideoPlayer from "./components/VideoPlayer";
 import AddAsset from "./components/AddAsset";
 import LeftNavigation from "./components/LeftNavigation";
 import YtDlpDownloader from "./components/YtDlpDownloader";
+import Settings from "./components/Settings";
 import { LuFolderSearch, LuTrash, LuX } from "react-icons/lu";
 import ConfirmationDialog from "./components/ConfirmationDialog";
 
@@ -150,6 +151,8 @@ function App() {
                   refetchMusic();
                 }}
               />
+            ) : activeSection === "settings" ? (
+              <Settings />
             ) : (
               <div
                 className={`grid gap-4 mb-6 relative w-full box-border flex-1`}

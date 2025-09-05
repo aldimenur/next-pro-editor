@@ -4,7 +4,13 @@ const { spawn } = require("child_process");
 const { shell } = require("electron");
 const { promises: fs } = require("fs");
 const YtDlpService = require("./ytdlp-service");
+const SettingsManager = require("./settings-manager");
 
+// Initialize settings manager
+let settingsManager;
+let serverProcess;
+
+// Default directories (will be overridden by settings)
 const SOUND_DIR = path.join(__dirname, "../assets/sound-effects");
 const MUSIC_DIR = path.join(__dirname, "../assets/musics");
 const VIDEO_DIR = path.join(__dirname, "../assets/videos");
@@ -36,23 +42,23 @@ function createWindow() {
 
   // Development;
 
-  // win.loadURL("http://localhost:4000");
+  win.loadURL("http://localhost:4000");
 
   // Production
 
-  serverProcess = spawn("node", [path.join(__dirname, "../server/index.js")], {
-    cwd: __dirname,
-    stdio: "pipe",
-  });
-  setTimeout(() => {
-    win.loadURL("http://localhost:4000");
-  }, 2000);
-  win.once("ready-to-show", () => {
-    win.show();
-  });
-  win.on("closed", () => {
-    serverProcess.kill();
-  });
+  // serverProcess = spawn("node", [path.join(__dirname, "../server/index.js")], {
+  //   cwd: __dirname,
+  //   stdio: "pipe",
+  // });
+  // setTimeout(() => {
+  //   win.loadURL("http://localhost:4000");
+  // }, 2000);
+  // win.once("ready-to-show", () => {
+  //   win.show();
+  // });
+  // win.on("closed", () => {
+  //   serverProcess.kill();
+  // });
 }
 
 async function copyAsset(filePath, assetType) {
@@ -63,17 +69,20 @@ async function copyAsset(filePath, assetType) {
   let destinationDir;
   switch (assetType) {
     case "sfx":
-      destinationDir = SOUND_DIR;
+      destinationDir = settingsManager.getAssetDirectory("soundEffects");
       break;
     case "vfx":
-      destinationDir = VIDEO_DIR;
+      destinationDir = settingsManager.getAssetDirectory("videos");
       break;
     case "music":
-      destinationDir = MUSIC_DIR;
+      destinationDir = settingsManager.getAssetDirectory("music");
       break;
     default:
       throw new Error(`Unsupported asset type: ${assetType}`);
   }
+
+  // Ensure the destination directory exists
+  await fs.mkdir(destinationDir, { recursive: true });
 
   const originalName = path.basename(filePath);
   let destPath = path.join(destinationDir, originalName);
@@ -116,7 +125,8 @@ ipcMain.handle("getSoundEffects", async (_event, params = {}) => {
   try {
     const { page = 1, limit = 20, search = "" } = params;
     const soundFileTypes = [".mp3", ".wav", ".m4a"];
-    let soundFiles = await getFilesRecursively(SOUND_DIR, soundFileTypes);
+    const soundDir = settingsManager.getAssetDirectory("soundEffects");
+    let soundFiles = await getFilesRecursively(soundDir, soundFileTypes);
 
     // Filter by search query (case-insensitive)
     if (search) {
@@ -155,7 +165,8 @@ ipcMain.handle("getSoundEffects", async (_event, params = {}) => {
 ipcMain.handle("getVideoEffects", async (_event, params = {}) => {
   try {
     const { page = 1, limit = 20, search = "" } = params;
-    let videoFiles = await getFilesRecursively(VIDEO_DIR, [".mp4", ".mov"]);
+    const videoDir = settingsManager.getAssetDirectory("videos");
+    let videoFiles = await getFilesRecursively(videoDir, [".mp4", ".mov"]);
 
     if (search) {
       const q = search.toLowerCase();
@@ -194,7 +205,8 @@ ipcMain.handle("getMusic", async (_event, params = {}) => {
   try {
     const { page = 1, limit = 20, search = "" } = params;
     const musicFileTypes = [".mp3", ".wav"];
-    let musicFiles = await getFilesRecursively(MUSIC_DIR, musicFileTypes);
+    const musicDir = settingsManager.getAssetDirectory("music");
+    let musicFiles = await getFilesRecursively(musicDir, musicFileTypes);
 
     if (search) {
       const q = search.toLowerCase();
@@ -243,7 +255,7 @@ ipcMain.on("onDragStart", (event, filePath) => {
   event.sender.startDrag({
     file: filePath,
     icon: path.join(
-      ICON_DIR,
+      settingsManager.getAssetDirectory("icons"),
       "Hopstarter-Sleek-Xp-Basic-Document-Blank.32.png"
     ),
   });
@@ -308,8 +320,9 @@ ipcMain.handle("importAssets", async (_event, params = {}) => {
 // Initialize yt-dlp service and ensure download directory exists
 async function initializeYtDlpService() {
   try {
-    await fs.mkdir(DOWNLOAD_DIR, { recursive: true });
-    ytdlpService = new YtDlpService(DOWNLOAD_DIR);
+    const downloadDir = settingsManager.getAssetDirectory("downloads");
+    await fs.mkdir(downloadDir, { recursive: true });
+    ytdlpService = new YtDlpService(downloadDir);
 
     // Set up progress event forwarding to renderer
     ytdlpService.on("progress", (progressData) => {
@@ -408,7 +421,81 @@ ipcMain.handle("ytdlp-get-active-downloads", async () => {
   return { downloads };
 });
 
+// Settings IPC handlers
+ipcMain.handle("getSettings", async () => {
+  try {
+    const settings = settingsManager.getSettings();
+    return { success: true, settings };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+ipcMain.handle("updateSettings", async (_event, newSettings) => {
+  try {
+    const settings = await settingsManager.updateSettings(newSettings);
+    return { success: true, settings };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+ipcMain.handle("updateAssetDirectory", async (_event, assetType, newPath) => {
+  try {
+    const settings = await settingsManager.updateAssetDirectory(
+      assetType,
+      newPath
+    );
+    return { success: true, settings };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+ipcMain.handle(
+  "selectDirectory",
+  async (_event, title = "Select Directory") => {
+    try {
+      const { canceled, filePaths } = await dialog.showOpenDialog(win, {
+        properties: ["openDirectory"],
+        title: title,
+      });
+
+      if (canceled || !filePaths.length) {
+        return { success: false, canceled: true };
+      }
+
+      return { success: true, path: filePaths[0] };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  }
+);
+
+ipcMain.handle("resetSettings", async () => {
+  try {
+    const settings = await settingsManager.resetToDefaults();
+    return { success: true, settings };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
 app.whenReady().then(async () => {
+  // Initialize settings manager first
+  settingsManager = new SettingsManager();
+  await settingsManager.loadSettings();
+
+  // Ensure all asset directories exist
+  const settings = settingsManager.getSettings();
+  for (const [key, dir] of Object.entries(settings.assetDirectories)) {
+    try {
+      await fs.mkdir(dir, { recursive: true });
+    } catch (error) {
+      console.warn(`Failed to create directory ${dir}:`, error.message);
+    }
+  }
+
   await initializeYtDlpService();
   createWindow();
 });

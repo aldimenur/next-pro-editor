@@ -28,4 +28,12 @@ contextBridge.exposeInMainWorld("electronAPI", {
   removeYtdlpProgressListener: () => {
     ipcRenderer.removeAllListeners("ytdlp-progress");
   },
+
+  // Settings functions
+  getSettings: () => ipcRenderer.invoke("getSettings"),
+  updateSettings: (settings) => ipcRenderer.invoke("updateSettings", settings),
+  updateAssetDirectory: (assetType, path) =>
+    ipcRenderer.invoke("updateAssetDirectory", assetType, path),
+  selectDirectory: (title) => ipcRenderer.invoke("selectDirectory", title),
+  resetSettings: () => ipcRenderer.invoke("resetSettings"),
 });

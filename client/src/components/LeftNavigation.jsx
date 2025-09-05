@@ -8,6 +8,7 @@ import {
   FaMinus,
   FaPlus,
   FaUpload,
+  FaCog,
 } from "react-icons/fa";
 import { LuDownload } from "react-icons/lu";
 
@@ -26,6 +27,7 @@ const LeftNavigation = ({
     { id: "music", label: "Music", icon: FaMusic },
     { id: "upload", label: "Add Assets", icon: FaUpload },
     { id: "ytdlp", label: "Download Videos", icon: LuDownload },
+    { id: "settings", label: "Settings", icon: FaCog },
   ];
 
   return (
