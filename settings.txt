@@ -1,0 +1,13 @@
+# Next Pro Editor Settings
+# This file contains application settings
+# Format: key=value
+
+version=1.0.0
+
+[Asset Directories]
+assetDirectories.soundEffects=assets/sound-effects
+assetDirectories.music=assets/musics
+assetDirectories.videos=assets/videos
+assetDirectories.icons=assets/icons
+assetDirectories.downloads=assets/downloads
+

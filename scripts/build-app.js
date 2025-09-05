@@ -56,7 +56,10 @@ async function buildApp() {
       /^\/README\.md/,
       /^\/install-ytdlp\.(sh|bat)/,
     ],
-    extraResource: [path.join(__dirname, "..", "electron", "binaries")],
+    extraResource: [
+      path.join(__dirname, "..", "electron", "binaries"),
+      path.join(__dirname, "..", "settings.txt"),
+    ],
   };
 
   try {
@@ -72,6 +75,7 @@ async function buildApp() {
       "  ✓ yt-dlp & FFmpeg binaries (no external installation needed)"
     );
     console.log("  ✓ All assets and dependencies");
+    console.log("  ✓ Default settings.txt file for persistent configuration");
     console.log("");
     console.log(
       "🚀 You can now distribute the app without requiring users to install anything!"
