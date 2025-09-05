@@ -3,9 +3,16 @@ node_modules
 assets/sound-effects/*
 assets/videos/*
 assets/musics/*
+assets/downloads/*
 
 !assets/sound-effects/.gitkeep
 !assets/videos/.gitkeep
 !assets/musics/.gitkeep
+!assets/downloads/.gitkeep
+
+# yt-dlp binaries (downloaded automatically)
+electron/binaries/*/yt-dlp*
+electron/binaries/*/ffmpeg.exe*
+electron/binaries/*/ffmpeg*
 
 dist/

@@ -2,7 +2,30 @@
 
 ## 📋 TODO List
 
+- [x] **yt-dlp Integration**: Download videos dan audio dari YouTube, TikTok, Instagram, dan platform lainnya
 - [ ] Tambahkan fitur scan asset otomatis: Bisa add asset dengan scan seluruh folder jika memiliki ekstensi yang didukung akan langsung bisa ter-import
+
+## 🆕 Fitur Terbaru - YouTube & Video Downloader
+
+Aplikasi sekarang mendukung download video dan audio dari berbagai platform menggunakan **yt-dlp + FFmpeg** yang sudah dibundel:
+
+### 🎯 Platform yang Didukung
+- YouTube
+- TikTok  
+- Instagram
+- Twitter/X
+- Vimeo
+- Facebook
+- Dan 1000+ situs lainnya
+
+### ⚡ Fitur Download
+- Download video dalam berbagai kualitas (720p, 1080p, 4K)
+- Extract audio saja (MP3) dengan FFmpeg
+- Auto-import ke kategori asset yang sesuai
+- Progress tracking real-time
+- Batch downloads
+- Thumbnail preview sebelum download
+- **No external dependencies** - semua tools sudah dibundel!
 
 Next Pro Editor adalah aplikasi desktop inovatif yang dirancang untuk memudahkan pengeditan dan manajemen multimedia. Dengan menggunakan teknologi terkini, aplikasi ini menawarkan pengalaman pengguna yang mulus dan powerful.
 
@@ -12,6 +35,7 @@ Next Pro Editor adalah aplikasi desktop inovatif yang dirancang untuk memudahkan
 
 - 🎥 **Pemutaran Video Canggih**
 - 🎵 **Pemutar Audio Terintegrasi**
+- 📥 **YouTube & Video Downloader (yt-dlp Integration)**
 - 💻 **Antarmuka Responsif dan Modern**
 - 🖥️ **Kompatibilitas Lintas Platform**
 - 🔧 **Konfigurasi Fleksibel**
@@ -53,6 +77,22 @@ cd next-pro-editor
 npm install
 ```
 
+### 3. Setup yt-dlp & FFmpeg (Otomatis)
+
+yt-dlp dan FFmpeg sudah **dibundel langsung** dengan aplikasi! Tidak perlu instalasi manual.
+
+**yt-dlp (Video Downloader):**
+- ✅ **Windows**: yt-dlp.exe (18MB)
+- ✅ **Linux**: yt-dlp binary (3MB)  
+- ✅ **macOS**: yt-dlp binary (34MB)
+
+**FFmpeg (Video Processing):**
+- ✅ **Windows**: ffmpeg.exe (172MB)
+- ✅ **Linux**: ffmpeg binary (76MB)
+- ✅ **macOS**: ffmpeg binary (76MB)
+
+Binaries akan diunduh otomatis saat pertama kali menjalankan `npm install`.
+
 ---
 
 ## 🏃‍♂️ Menjalankan Aplikasi
@@ -66,8 +106,19 @@ npm run dev
 ### 🛠 Build Aplikasi
 
 ```bash
+# Build React client saja
 npm run build
+
+# Build aplikasi lengkap (dengan yt-dlp binaries)
+npm run build-app
 ```
+
+**Build aplikasi lengkap** akan:
+- ✅ Download yt-dlp & FFmpeg binaries terbaru
+- ✅ Build React frontend
+- ✅ Package Electron app
+- ✅ Include semua dependencies
+- 🚀 **Hasil akhir**: Aplikasi siap distribusi tanpa perlu instalasi external tools!
 
 ---
 

@@ -9,6 +9,7 @@ import {
   FaPlus,
   FaUpload,
 } from "react-icons/fa";
+import { LuDownload } from "react-icons/lu";
 
 const LeftNavigation = ({
   isNavCollapsed,
@@ -24,6 +25,7 @@ const LeftNavigation = ({
     { id: "vfx", label: "Video Effects", icon: FaVideo },
     { id: "music", label: "Music", icon: FaMusic },
     { id: "upload", label: "Add Assets", icon: FaUpload },
+    { id: "ytdlp", label: "Download Videos", icon: LuDownload },
   ];
 
   return (

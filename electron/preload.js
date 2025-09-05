@@ -10,4 +10,22 @@ contextBridge.exposeInMainWorld("electronAPI", {
     ipcRenderer.invoke("openFileLocation", filePath),
   addAsset: (params) => ipcRenderer.invoke("addAsset", params),
   importAssets: (params) => ipcRenderer.invoke("importAssets", params),
+
+  // yt-dlp functions
+  ytdlpCheckAvailability: () => ipcRenderer.invoke("ytdlp-check-availability"),
+  ytdlpGetVideoInfo: (url) => ipcRenderer.invoke("ytdlp-get-video-info", url),
+  ytdlpDownload: (url, options) =>
+    ipcRenderer.invoke("ytdlp-download", url, options),
+  ytdlpCancelDownload: (downloadId) =>
+    ipcRenderer.invoke("ytdlp-cancel-download", downloadId),
+  ytdlpGetActiveDownloads: () =>
+    ipcRenderer.invoke("ytdlp-get-active-downloads"),
+
+  // Event listeners for yt-dlp progress
+  onYtdlpProgress: (callback) => {
+    ipcRenderer.on("ytdlp-progress", (_event, data) => callback(data));
+  },
+  removeYtdlpProgressListener: () => {
+    ipcRenderer.removeAllListeners("ytdlp-progress");
+  },
 });

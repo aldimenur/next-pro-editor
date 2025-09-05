@@ -9,6 +9,7 @@ import SoundPlayer from "./components/SoundPlayer";
 import VideoPlayer from "./components/VideoPlayer";
 import AddAsset from "./components/AddAsset";
 import LeftNavigation from "./components/LeftNavigation";
+import YtDlpDownloader from "./components/YtDlpDownloader";
 import { LuFolderSearch, LuTrash, LuX } from "react-icons/lu";
 import ConfirmationDialog from "./components/ConfirmationDialog";
 
@@ -117,7 +118,7 @@ function App() {
         `}
       >
         <div className="mx-auto bg-white shadow-lg rounded-xl p-6 flex flex-col h-full">
-          {activeSection !== "upload" && (
+          {activeSection !== "upload" && activeSection !== "ytdlp" && (
             <div className="mb-3">
               <input
                 type="text"
@@ -136,6 +137,14 @@ function App() {
             {activeSection === "upload" ? (
               <AddAsset
                 onUploadSuccess={() => {
+                  refetchSounds();
+                  refetchVideos();
+                  refetchMusic();
+                }}
+              />
+            ) : activeSection === "ytdlp" ? (
+              <YtDlpDownloader
+                onDownloadComplete={() => {
                   refetchSounds();
                   refetchVideos();
                   refetchMusic();
@@ -274,7 +283,7 @@ function App() {
               </div>
             )}
           </div>
-          {activeSection !== "upload" && (
+          {activeSection !== "upload" && activeSection !== "ytdlp" && (
             <div className="flex justify-center items-center space-x-4 mt-3">
               <button
                 onClick={() => setPage((p) => Math.max(p - 1, 1))}

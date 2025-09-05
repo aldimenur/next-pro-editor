@@ -8,19 +8,36 @@
     "server": "nodemon server/index.js",
     "electron": "electron electron/main.js",
     "start": "electron electron/main.js",
-    "dev": "concurrently \"npm run react\" \"npm run electron\""
+    "dev": "concurrently \"npm run react\" \"npm run electron\"",
+    "download-binaries": "node scripts/download-binaries.js",
+    "prebuild": "npm run download-binaries",
+    "build": "npm run prebuild && cd client && npm run build",
+    "build-app": "node scripts/build-app.js",
+    "postinstall": "npm run download-binaries"
   },
   "author": "aldimenur",
   "license": "ISC",
   "dependencies": {
     "cors": "^2.8.5",
     "express": "^5.1.0",
-    "nodemon": "^3.1.10"
+    "nodemon": "^3.1.10",
+    "node-fetch": "^2.6.7"
   },
   "devDependencies": {
     "concurrently": "^9.2.0",
     "electron": "^37.1.0",
     "electron-packager": "^17.1.2",
     "wait-on": "^8.0.3"
+  },
+  "build": {
+    "extraResources": [
+      {
+        "from": "electron/binaries",
+        "to": "binaries",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ]
   }
 }

@@ -3,10 +3,16 @@ const path = require("path");
 const { spawn } = require("child_process");
 const { shell } = require("electron");
 const { promises: fs } = require("fs");
+const YtDlpService = require("./ytdlp-service");
+
 const SOUND_DIR = path.join(__dirname, "../assets/sound-effects");
 const MUSIC_DIR = path.join(__dirname, "../assets/musics");
 const VIDEO_DIR = path.join(__dirname, "../assets/videos");
 const ICON_DIR = path.join(__dirname, "../assets/icons");
+const DOWNLOAD_DIR = path.join(__dirname, "../assets/downloads");
+
+// Initialize yt-dlp service
+let ytdlpService;
 
 let win;
 
@@ -101,7 +107,6 @@ async function getFilesRecursively(dir, fileTypes, acc = []) {
   }
   return acc;
 }
-
 
 ipcMain.handle("openFileLocation", async (_event, filePath) => {
   shell.showItemInFolder(filePath);
@@ -300,6 +305,110 @@ ipcMain.handle("importAssets", async (_event, params = {}) => {
   return { success: true, imported: results };
 });
 
-app.whenReady().then(() => {
+// Initialize yt-dlp service and ensure download directory exists
+async function initializeYtDlpService() {
+  try {
+    await fs.mkdir(DOWNLOAD_DIR, { recursive: true });
+    ytdlpService = new YtDlpService(DOWNLOAD_DIR);
+
+    // Set up progress event forwarding to renderer
+    ytdlpService.on("progress", (progressData) => {
+      if (win && !win.isDestroyed()) {
+        win.webContents.send("ytdlp-progress", progressData);
+      }
+    });
+
+    console.log("yt-dlp service initialized");
+  } catch (error) {
+    console.error("Failed to initialize yt-dlp service:", error);
+  }
+}
+
+// yt-dlp IPC handlers
+ipcMain.handle("ytdlp-check-availability", async () => {
+  if (!ytdlpService) {
+    return { available: false, error: "Service not initialized" };
+  }
+
+  try {
+    const available = await ytdlpService.checkAvailability();
+    return { available };
+  } catch (error) {
+    return { available: false, error: error.message };
+  }
+});
+
+ipcMain.handle("ytdlp-get-video-info", async (_event, url) => {
+  if (!ytdlpService) {
+    return { success: false, error: "Service not initialized" };
+  }
+
+  try {
+    const info = await ytdlpService.getVideoInfo(url);
+    return { success: true, info };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+ipcMain.handle("ytdlp-download", async (_event, url, options = {}) => {
+  if (!ytdlpService) {
+    return { success: false, error: "Service not initialized" };
+  }
+
+  try {
+    const result = await ytdlpService.download(url, options);
+
+    // Automatically import the downloaded file to appropriate asset category
+    if (result.success && options.autoImport !== false) {
+      let assetType = "vfx"; // default to video
+
+      if (options.audioOnly || result.fileName.endsWith(".mp3")) {
+        assetType = options.assetType || "music";
+      }
+
+      try {
+        const importedPath = await copyAsset(result.filePath, assetType);
+        // Clean up the original download
+        await fs.unlink(result.filePath);
+
+        return {
+          ...result,
+          imported: true,
+          importedPath,
+          assetType,
+        };
+      } catch (importError) {
+        console.warn("Failed to auto-import downloaded file:", importError);
+        return result; // Return original result if import fails
+      }
+    }
+
+    return result;
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+ipcMain.handle("ytdlp-cancel-download", async (_event, downloadId) => {
+  if (!ytdlpService) {
+    return { success: false, error: "Service not initialized" };
+  }
+
+  const cancelled = ytdlpService.cancelDownload(downloadId);
+  return { success: cancelled };
+});
+
+ipcMain.handle("ytdlp-get-active-downloads", async () => {
+  if (!ytdlpService) {
+    return { downloads: [] };
+  }
+
+  const downloads = ytdlpService.getActiveDownloads();
+  return { downloads };
+});
+
+app.whenReady().then(async () => {
+  await initializeYtDlpService();
   createWindow();
 });
