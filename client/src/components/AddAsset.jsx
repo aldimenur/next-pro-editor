@@ -14,6 +14,10 @@ function AddAsset({ onUploadSuccess }) {
   return (
     <div className="flex flex-col items-center justify-center h-full w-full">
       <h2 className="text-xl font-bold mb-4 text-gray-800">Import Assets</h2>
+      <p className="text-gray-700 text-sm mb-4">
+        Import assets from your computer to the library. You can import multiple
+        files at once.
+      </p>
 
       {/* Asset type selector */}
       <div className="mb-4 flex items-center space-x-2">
